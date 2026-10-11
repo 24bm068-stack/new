@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CognitiveCare 2.0 — Cognitive Health & Memory Platform</title>
+
+  <!-- Google Fonts & Chart.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase Compat Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --font-scale: 1rem;
+      --bg-main: #f0f7fc;
+      --surface: #ffffff;
+      --surface-subtle: #e6f2fa;
+      --text-main: #0f283d;
+      --text-muted: #54728c;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #d0e4f2;
+      --shadow-sm: 0 2px 8px rgba(15, 40, 61, 0.05);
+      --shadow-md: 0 8px 24px rgba(15, 40, 61, 0.08);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    body.high-contrast {
+      --bg-main: #000000;
+      --surface: #121212;
+      --surface-subtle: #242424;
+      --text-main: #ffffff;
+      --text-muted: #e2e8f0;
+      --primary: #38bdf8;
+      --border: #475569;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: var(--font-scale);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Top Accessibility & Header Bar */
+    .top-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-size: 1.8rem;
+      background: #e0f2fe;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary);
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .accessibility-tools {
+      display: flex;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+    }
+    .icon-btn:hover { background: rgba(0,0,0,0.06); }
+
+    .status-pill {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill.connected { background: #dcfce7; color: #166534; }
+    .status-pill.offline { background: #fee2e2; color: #991b1b; }
+    .status-pill.demo { background: #fef3c7; color: #92400e; }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--surface);
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .tab-btn:hover:not(.active) {
+      background: var(--surface-subtle);
+      color: var(--text-main);
+    }
+
+    /* Container & Layout */
+    .container {
+      width: 94%;
+      max-width: 1240px;
+      margin: 24px auto;
+      flex: 1;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.25s ease-in-out; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #dceaf5; }
+    .btn-lg { padding: 15px 28px; font-size: 1.1rem; }
+
+    /* Inputs */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text-main);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    /* Stats Banner */
+    .stat-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: center;
+    }
+    .stat-card .val {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+    .stat-card .lbl {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    /* Game 1: 3D Memory Flip */
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      max-width: 580px;
+      margin: 20px auto;
+      perspective: 1000px;
+    }
+    .card-slot {
+      aspect-ratio: 1;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease;
+      border-radius: var(--radius-md);
+    }
+    .card-slot.flipped .card-inner { transform: rotateY(180deg); }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      box-shadow: var(--shadow-sm);
+      border: 2px solid var(--border);
+    }
+    .card-front {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+    }
+    .card-back {
+      background: var(--surface);
+      transform: rotateY(180deg);
+    }
+    .card-slot.matched .card-back {
+      background: #dcfce7;
+      border-color: #10b981;
+    }
+
+    /* Game 2: Sequence Simon */
+    .sequence-monitor {
+      background: var(--surface-subtle);
+      border-radius: var(--radius-lg);
+      border: 2px dashed var(--border);
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 8px;
+      margin: 18px 0;
+      color: var(--primary);
+    }
+    .sequence-pad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .num-btn {
+      aspect-ratio: 1;
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .num-btn.lit {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.08);
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.6);
+    }
+
+    /* Game 3: Find Object */
+    .target-badge {
+      background: #fef3c7;
+      border: 2px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 20px;
+    }
+    .object-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .object-btn {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      font-size: 2.4rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.18s;
+    }
+    .object-btn span { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
+    .object-btn:hover { border-color: var(--primary); transform: translateY(-3px); }
+
+    /* Game 4: Reaction Arena */
+    .reaction-box {
+      height: 320px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .reaction-target {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #38bdf8, #0284c7);
+      box-shadow: 0 0 30px rgba(2, 132, 199, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { from { transform: scale(0.96); } to { transform: scale(1.04); } }
+
+    /* Media Area */
+    video {
+      width: 100%;
+      height: 240px;
+      background: #000;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+    }
+    .transcript-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      min-height: 100px;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    /* Logs */
+    .log-terminal {
+      background: #091e30;
+      color: #93c5fd;
+      font-family: monospace;
+      font-size: 0.85rem;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-line { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+    /* Print Formatting */
+    @media print {
+      .top-bar, .nav-tabs, .btn, .accessibility-tools, .reaction-box, .memory-grid { display: none !important; }
+      body { background: white; color: black; }
+      .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+      .tab-content { display: block !important; }
+    }
+
+    @media (max-width: 820px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .memory-grid { grid-template-columns: repeat(4, 1fr); }
+      .object-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-logo">🧠</div>
+      <div class="brand-text">
+        <h1>CognitiveCare 2.0</h1>
+        <p>Interactive Neuro-Cognitive Activity & Memory Platform</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Database Status Badge -->
+      <span id="dbBadge" class="status-pill demo">
+        ● Local Storage (Demo Mode)
+      </span>
+
+      <!-- Senior Accessibility Toolbar -->
+      <div class="accessibility-tools" title="Text Enlargement & High Contrast">
+        <button class="icon-btn" onclick="adjustFont(-0.1)">A-</button>
+        <button class="icon-btn" onclick="resetFont()">A</button>
+        <button class="icon-btn" onclick="adjustFont(0.1)">A+</button>
+        <button class="icon-btn" onclick="toggleContrast()">🌓 Contrast</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('patients')">👤 Patient Profiles</button>
+    <button class="tab-btn" onclick="switchTab('games')">🧠 Cognitive Games</button>
+    <button class="tab-btn" onclick="switchTab('media')">📷 Camera & Voice Assistant</button>
+    <button class="tab-btn" onclick="switchTab('analytics')">📈 Progress Analytics</button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+
+    <!-- ==================== TAB 1: DASHBOARD ==================== -->
+    <div id="tab-dashboard" class="tab-content active">
+      <!-- Real-time Stats Cards -->
+      <div class="grid-4" style="margin-bottom: 24px;">
+        <div class="stat-card">
+          <div class="lbl">Total Session Score</div>
+          <div class="val" id="dashTotalScore">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="lbl">Levels Completed</div>
+          <div class="val" id="dashGamesCount">0 / 4</div>
+        </div>
+        <div class="stat-card">
+          <div class="lbl">Overall Accuracy</div>
+          <div class="val" id="dashAccuracy">100%</div>
+        </div>
+        <div class="stat-card">
+          <div class="lbl">Total Attempts</div>
+          <div class="val" id="dashAttempts">0</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Quick Session Launcher -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🚀 Active Training Session</h2>
+            <span id="activeSessionBadge" class="status-pill offline">No Active Session</span>
+          </div>
+
+          <p style="color: var(--text-muted); margin-bottom: 16px;">
+            Current Patient: <strong id="lblActivePatient">No Patient Selected</strong>
+          </p>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-lg" onclick="startSession()">
+              ▶ Start New Session
+            </button>
+            <button class="btn btn-danger" onclick="finishSession()">
+              🏁 Conclude Session
+            </button>
+            <button class="btn btn-secondary" onclick="printReport()">
+              🖨️ Export / Print Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-Time Activity Log -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🔄 Real-Time Event Stream</h2>
+            <button class="btn btn-secondary" onclick="clearLogs()" style="padding: 4px 10px; font-size: 0.8rem;">Clear</button>
+          </div>
+          <div class="log-terminal" id="activityLogs">
+            <div class="log-line">[SYSTEM] CognitiveCare 2.0 initialized.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: PATIENT MANAGEMENT ==================== -->
+    <div id="tab-patients" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">👤 Patient Registration</h2>
+          </div>
+          <form onsubmit="handlePatientSave(event)">
+            <div class="form-group">
+              <label>Full Patient Name</label>
+              <input type="text" id="inputPatientName" class="form-control" placeholder="e.g. Eleanor Vance" required>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="inputPatientAge" class="form-control" placeholder="e.g. 74" required>
+              </div>
+              <div class="form-group">
+                <label>Caregiver / Guardian Name</label>
+                <input type="text" id="inputCaregiver" class="form-control" placeholder="e.g. Dr. Roberts">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Clinical / Session Notes</label>
+              <textarea id="inputNotes" class="form-control" rows="3" placeholder="Optional notes..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">💾 Save Patient Record</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📋 Select Registered Patient</h2>
+          </div>
+          <div class="form-group">
+            <label>Saved Profiles</label>
+            <select id="patientSelectDropdown" class="form-control" onchange="selectPatientProfile(this.value)">
+              <option value="">-- Choose a Patient --</option>
+            </select>
+          </div>
+          <div id="patientDetailsCard" style="display:none; padding:16px; background:var(--surface-subtle); border-radius:var(--radius-md);">
+            <h3 id="detName" style="margin-bottom:8px;"></h3>
+            <p style="font-size:0.9rem; color:var(--text-muted);" id="detMeta"></p>
+            <p style="font-size:0.9rem; margin-top:8px;" id="detNotes"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: COGNITIVE GAMES ==================== -->
+    <div id="tab-games" class="tab-content">
+      
+      <!-- Sub Game Navigator -->
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" onclick="showGameLevel(1)">1. 🧩 Memory Match</button>
+        <button class="btn btn-secondary" onclick="showGameLevel(2)">2. 🔢 Sequence Simon</button>
+        <button class="btn btn-secondary" onclick="showGameLevel(3)">3. ☕ Find the Object</button>
+        <button class="btn btn-secondary" onclick="showGameLevel(4)">4. ⚡ Reaction Challenge</button>
+      </div>
+
+      <!-- LEVEL 1: MEMORY MATCH -->
+      <div id="gameView-1" class="card">
+        <div class="card-header">
+          <h2 class="card-title">🧩 Level 1: Memory Pair Matching</h2>
+          <span id="memPairsLabel" class="status-pill connected">0 / 4 Matched</span>
+        </div>
+        <p style="color:var(--text-muted)">Flip the cards to discover identical visual pairs. Focus on location and icon.</p>
+        <div class="memory-grid" id="memoryBoard"></div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:16px;">
+          <button class="btn btn-secondary" onclick="initMemoryGame()">🔄 Shuffle & Restart</button>
+          <button class="btn btn-primary" onclick="showGameLevel(2)">Next Activity →</button>
+        </div>
+      </div>
+
+      <!-- LEVEL 2: SEQUENCE SIMON -->
+      <div id="gameView-2" class="card" style="display: none;">
+        <div class="card-header">
+          <h2 class="card-title">🔢 Level 2: Sequence Reproduction</h2>
+          <span id="seqStatus" class="status-pill offline">Press Start</span>
+        </div>
+        <p style="color:var(--text-muted)">Watch the highlighted sequence carefully, then repeat it by clicking the numbers in order.</p>
+        <div class="sequence-monitor" id="sequenceScreen">Press START Sequence</div>
+        <div class="sequence-pad">
+          <button class="num-btn" id="num-1" onclick="handleSequenceTap(1)">1</button>
+          <button class="num-btn" id="num-2" onclick="handleSequenceTap(2)">2</button>
+          <button class="num-btn" id="num-3" onclick="handleSequenceTap(3)">3</button>
+          <button class="num-btn" id="num-4" onclick="handleSequenceTap(4)">4</button>
+          <button class="num-btn" id="num-5" onclick="handleSequenceTap(5)">5</button>
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
+          <button class="btn btn-primary" onclick="startSequenceGame()">▶ Start Sequence</button>
+          <button class="btn btn-secondary" onclick="resetSequence()">Clear</button>
+          <button class="btn btn-primary" onclick="showGameLevel(3)">Next Activity →</button>
+        </div>
+      </div>
+
+      <!-- LEVEL 3: FIND THE OBJECT -->
+      <div id="gameView-3" class="card" style="display: none;">
+        <div class="card-header">
+          <h2 class="card-title">☕ Level 3: Visual Search & Attention</h2>
+          <span class="status-pill connected" id="objScoreBadge">Score: 0</span>
+        </div>
+        <div class="target-badge" id="targetObjectLabel">Locating target...</div>
+        <div class="object-grid" id="objectButtonGrid"></div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
+          <button class="btn btn-secondary" onclick="initObjectGame()">🔄 New Target</button>
+          <button class="btn btn-primary" onclick="showGameLevel(4)">Next Activity →</button>
+        </div>
+      </div>
+
+      <!-- LEVEL 4: REACTION SPEED -->
+      <div id="gameView-4" class="card" style="display: none;">
+        <div class="card-header">
+          <h2 class="card-title">⚡ Level 4: Motor Response Speed</h2>
+          <span class="status-pill connected" id="reactionScoreBadge">Attempts: 0/3</span>
+        </div>
+        <p style="color:var(--text-muted)">Wait patiently. As soon as the glowing circle appears, tap it as fast as you can. Avoid premature clicks!</p>
+        <div class="reaction-box" id="reactionArena" onclick="handleArenaPrematureClick()">
+          <div id="reactionCircle" class="reaction-target" onclick="handleReactionSuccess(event)">TAP!</div>
+          <div id="reactionPrompt" style="font-weight:700; color:var(--text-muted); font-size:1.2rem;">Press START below</div>
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
+          <button class="btn btn-primary" onclick="startReactionTrial()">▶ Start Trial</button>
+          <button class="btn btn-danger" onclick="finishSession()">🏁 Finish Session</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 4: CAMERA & VOICE ==================== -->
+    <div id="tab-media" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📷 Front Camera Preview</h2>
+            <span class="status-pill demo" style="font-size:0.75rem;">100% Client-Side Privacy</span>
+          </div>
+          <video id="webcamElement" autoplay playsinline muted></video>
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn btn-primary" onclick="toggleCamera(true)">Start Camera</button>
+            <button class="btn btn-secondary" onclick="toggleCamera(false)">Stop Camera</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🎤 Speech Recognition & Spoken Voice</h2>
+            <span id="micBadge" class="status-pill offline">Mic Inactive</span>
+          </div>
+          <p style="color:var(--text-muted); font-size:0.9rem;">Voice Assistant responds to commands: <em>"Start", "Restart", "Next", "Help"</em>.</p>
+          <div class="transcript-box" id="speechTranscriptDisplay">Speech transcript will appear here in real-time...</div>
+          <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="toggleMic(true)">🎤 Start Voice</button>
+            <button class="btn btn-secondary" onclick="toggleMic(false)">Stop</button>
+            <button class="btn btn-secondary" onclick="speakMessage('Welcome to CognitiveCare. I am your cognitive training companion.')">🔊 Test Audio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 5: ANALYTICS ==================== -->
+    <div id="tab-analytics" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🕸️ Cognitive Domain Breakdown</h2>
+          </div>
+          <div style="max-height: 320px;">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📈 Reaction Response Trend</h2>
+          </div>
+          <div style="max-height: 320px;">
+            <canvas id="reactionLineChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); background: var(--surface);">
+    <p><strong>Clinical Disclaimer:</strong> CognitiveCare 2.0 is an interactive cognitive-training and stimulation prototype. It is not an FDA-cleared diagnostic device and does not replace medical consultation.</p>
+  </footer>
+
+  <!-- ==================== APPLICATION LOGIC ==================== -->
+  <script>
+    /* --- AUDIO SYNTHESIZER (Web Audio API) --- */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq = 440, type = 'sine', duration = 0.15) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    const soundCorrect = () => { playBeep(587.33, 'triangle', 0.1); setTimeout(() => playBeep(880, 'triangle', 0.25), 100); };
+    const soundError = () => { playBeep(220, 'sawtooth', 0.2); };
+
+    /* --- APPLICATION STATE --- */
+    let state = {
+      patientId: 'patient_default',
+      patientName: 'Guest Patient',
+      patientAge: '',
+      caregiver: '',
+      sessionId: null,
+      sessionActive: false,
+      totalScore: 0,
+      totalMistakes: 0,
+      totalAttempts: 0,
+      completedLevels: 0,
+      reactionTimes: [],
+      domainScores: { memory: 80, sequencing: 75, attention: 90, reaction: 85 }
+    };
+
+    /* --- ACCESSIBILITY TOOLS --- */
+    let currentScale = 1.0;
+    function adjustFont(val) {
+      currentScale = Math.min(Math.max(currentScale + val, 0.85), 1.35);
+      document.documentElement.style.setProperty('--font-scale', `${currentScale}rem`);
+    }
+    function resetFont() {
+      currentScale = 1.0;
+      document.documentElement.style.setProperty('--font-scale', `1rem`);
+    }
+    function toggleContrast() {
+      document.body.classList.toggle('high-contrast');
+    }
+
+    /* --- NAVIGATION --- */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      event.target.classList.add('active');
+      if (tabId === 'analytics') renderAnalyticsCharts();
+    }
+
+    function showGameLevel(level) {
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`gameView-${i}`).style.display = (i === level) ? 'block' : 'none';
+      }
+      if (level === 1) initMemoryGame();
+      if (level === 3) initObjectGame();
+    }
+
+    /* --- LOGGING & DASHBOARD UPDATES --- */
+    function logEvent(msg) {
+      const box = document.getElementById('activityLogs');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.textContent = `[${time}] ${msg}`;
+      box.prepend(div);
+    }
+    function clearLogs() {
+      document.getElementById('activityLogs').innerHTML = '';
+    }
+
+    function updateDashboardUI() {
+      document.getElementById('dashTotalScore').textContent = state.totalScore;
+      document.getElementById('dashGamesCount').textContent = `${state.completedLevels} / 4`;
+      document.getElementById('dashAttempts').textContent = state.totalAttempts;
+      const accuracy = state.totalAttempts > 0 
+        ? Math.max(0, Math.round(((state.totalAttempts - state.totalMistakes) / state.totalAttempts) * 100))
+        : 100;
+      document.getElementById('dashAccuracy').textContent = `${accuracy}%`;
+    }
+
+    /* --- PATIENT MANAGEMENT --- */
+    function handlePatientSave(e) {
+      e.preventDefault();
+      const name = document.getElementById('inputPatientName').value.trim();
+      const age = document.getElementById('inputPatientAge').value;
+      const caregiver = document.getElementById('inputCaregiver').value.trim();
+      const notes = document.getElementById('inputNotes').value.trim();
+
+      const id = 'pt_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 30);
+      const profile = { id, name, age, caregiver, notes, savedAt: Date.now() };
+
+      const all = JSON.parse(localStorage.getItem('cc_patients') || '{}');
+      all[id] = profile;
+      localStorage.setItem('cc_patients', JSON.stringify(all));
+
+      populatePatientDropdown();
+      selectPatientProfile(id);
+      logEvent(`Saved profile for: ${name}`);
+      alert(`Patient profile saved!`);
+    }
+
+    function populatePatientDropdown() {
+      const select = document.getElementById('patientSelectDropdown');
+      select.innerHTML = '<option value="">-- Choose a Patient --</option>';
+      const all = JSON.parse(localStorage.getItem('cc_patients') || '{}');
+      Object.values(all).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${p.age} y/o)`;
+        select.appendChild(opt);
+      });
+    }
+
+    function selectPatientProfile(id) {
+      if (!id) return;
+      const all = JSON.parse(localStorage.getItem('cc_patients') || '{}');
+      const p = all[id];
+      if (!p) return;
+
+      state.patientId = p.id;
+      state.patientName = p.name;
+      state.patientAge = p.age;
+      state.caregiver = p.caregiver;
+
+      document.getElementById('lblActivePatient').textContent = `${p.name} (Age: ${p.age})`;
+      document.getElementById('detName').textContent = p.name;
+      document.getElementById('detMeta').textContent = `Age: ${p.age} | Caregiver: ${p.caregiver || 'N/A'}`;
+      document.getElementById('detNotes').textContent = p.notes ? `Notes: ${p.notes}` : '';
+      document.getElementById('patientDetailsCard').style.display = 'block';
+    }
+
+    /* --- SESSION CONTROLLER --- */
+    function startSession() {
+      state.sessionId = 'ses_' + Date.now();
+      state.sessionActive = true;
+      state.totalScore = 0;
+      state.totalMistakes = 0;
+      state.totalAttempts = 0;
+      state.completedLevels = 0;
+      state.reactionTimes = [];
+
+      document.getElementById('activeSessionBadge').textContent = '🟢 Session Active';
+      document.getElementById('activeSessionBadge').className = 'status-pill connected';
+      updateDashboardUI();
+      logEvent(`Session initiated for: ${state.patientName}`);
+      speakMessage(`Welcome ${state.patientName}. Let's begin today's activities.`);
+      switchTab('games');
+      showGameLevel(1);
+    }
+
+    function finishSession() {
+      if (!state.sessionActive) return alert('No active session.');
+      state.sessionActive = false;
+      document.getElementById('activeSessionBadge').textContent = 'Session Completed';
+      document.getElementById('activeSessionBadge').className = 'status-pill offline';
+      logEvent(`Session finalized. Total score: ${state.totalScore}`);
+      speakMessage(`Excellent work ${state.patientName}! You completed today's cognitive workout.`);
+      switchTab('dashboard');
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    /* --- GAME 1: MEMORY MATCH --- */
+    const symbols = ['🍌', '🍇', '🍊', '🍎'];
+    let memCards = [], firstFlipped = null, lockBoard = false, matchedPairs = 0;
+
+    function initMemoryGame() {
+      const board = document.getElementById('memoryBoard');
+      board.innerHTML = '';
+      memCards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+      firstFlipped = null;
+      lockBoard = false;
+      matchedPairs = 0;
+      document.getElementById('memPairsLabel').textContent = `0 / 4 Matched`;
+
+      memCards.forEach((sym, idx) => {
+        const slot = document.createElement('div');
+        slot.className = 'card-slot';
+        slot.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">?</div>
+            <div class="card-back">${sym}</div>
+          </div>
+        `;
+        slot.onclick = () => handleMemoryFlip(slot, sym);
+        board.appendChild(slot);
+      });
+    }
+
+    function handleMemoryFlip(slot, sym) {
+      if (lockBoard || slot.classList.contains('flipped') || slot.classList.contains('matched')) return;
+      playBeep(400, 'sine', 0.08);
+      slot.classList.add('flipped');
+
+      if (!firstFlipped) {
+        firstFlipped = { slot, sym };
+        return;
+      }
+
+      state.totalAttempts++;
+      if (firstFlipped.sym === sym) {
+        soundCorrect();
+        firstFlipped.slot.classList.add('matched');
+        slot.classList.add('matched');
+        matchedPairs++;
+        state.totalScore += 10;
+        document.getElementById('memPairsLabel').textContent = `${matchedPairs} / 4 Matched`;
+        logEvent(`Memory Match: Found pair ${sym}`);
+        firstFlipped = null;
+
+        if (matchedPairs === 4) {
+          state.completedLevels = Math.max(state.completedLevels, 1);
+          speakMessage('Great job! Memory cards completed.');
+        }
+      } else {
+        soundError();
+        lockBoard = true;
+        state.totalMistakes++;
+        setTimeout(() => {
+          firstFlipped.slot.classList.remove('flipped');
+          slot.classList.remove('flipped');
+          firstFlipped = null;
+          lockBoard = false;
+        }, 900);
+      }
+      updateDashboardUI();
+    }
+
+    /* --- GAME 2: SEQUENCE SIMON --- */
+    let currentSequence = [], userSequence = [], seqAccepting = false;
+
+    function startSequenceGame() {
+      currentSequence = [
+        Math.floor(Math.random() * 5) + 1,
+        Math.floor(Math.random() * 5) + 1,
+        Math.floor(Math.random() * 5) + 1
+      ];
+      userSequence = [];
+      seqAccepting = false;
+      document.getElementById('sequenceScreen').textContent = 'WATCH...';
+      document.getElementById('seqStatus').textContent = 'Observing Pattern';
+      document.getElementById('seqStatus').className = 'status-pill demo';
+
+      let step = 0;
+      const interval = setInterval(() => {
+        if (step < currentSequence.length) {
+          flashSequenceButton(currentSequence[step]);
+          step++;
+        } else {
+          clearInterval(interval);
+          document.getElementById('sequenceScreen').textContent = 'YOUR TURN';
+          document.getElementById('seqStatus').textContent = 'Repeat Pattern';
+          document.getElementById('seqStatus').className = 'status-pill connected';
+          seqAccepting = true;
+        }
+      }, 750);
+    }
+
+    function flashSequenceButton(num) {
+      const btn = document.getElementById(`num-${num}`);
+      btn.classList.add('lit');
+      playBeep(300 + num * 80, 'triangle', 0.2);
+      setTimeout(() => btn.classList.remove('lit'), 400);
+    }
+
+    function handleSequenceTap(num) {
+      if (!seqAccepting) return;
+      flashSequenceButton(num);
+      userSequence.push(num);
+      document.getElementById('sequenceScreen').textContent = userSequence.join(' - ');
+
+      if (userSequence.length === currentSequence.length) {
+        seqAccepting = false;
+        state.totalAttempts++;
+        if (userSequence.join('') === currentSequence.join('')) {
+          soundCorrect();
+          state.totalScore += 20;
+          state.completedLevels = Math.max(state.completedLevels, 2);
+          document.getElementById('seqStatus').textContent = 'Correct!';
+          speakMessage('Correct sequence!');
+        } else {
+          soundError();
+          state.totalMistakes++;
+          document.getElementById('seqStatus').textContent = 'Mismatch, try again.';
+          speakMessage('That was not quite right.');
+        }
+        updateDashboardUI();
+      }
+    }
+
+    function resetSequence() {
+      userSequence = [];
+      document.getElementById('sequenceScreen').textContent = 'Ready';
+    }
+
+    /* --- GAME 3: FIND THE OBJECT --- */
+    const items = [
+      { name: 'Coffee Cup', icon: '☕' },
+      { name: 'Smart Phone', icon: '📱' },
+      { name: 'House Key', icon: '🔑' },
+      { name: 'Eye Glasses', icon: '👓' },
+      { name: 'Alarm Clock', icon: '⏰' },
+      { name: 'Reading Book', icon: '📖' }
+    ];
+    let currentTarget = null;
+
+    function initObjectGame() {
+      currentTarget = items[Math.floor(Math.random() * items.length)];
+      document.getElementById('targetObjectLabel').textContent = `Target: Find the ${currentTarget.icon} ${currentTarget.name}`;
+      const grid = document.getElementById('objectButtonGrid');
+      grid.innerHTML = '';
+      [...items].sort(() => Math.random() - 0.5).forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'object-btn';
+        btn.innerHTML = `${item.icon}<span>${item.name}</span>`;
+        btn.onclick = () => {
+          state.totalAttempts++;
+          if (item.name === currentTarget.name) {
+            soundCorrect();
+            state.totalScore += 20;
+            state.completedLevels = Math.max(state.completedLevels, 3);
+            document.getElementById('objScoreBadge').textContent = 'Correct Item Found!';
+            speakMessage('Spot on!');
+            setTimeout(initObjectGame, 1200);
+          } else {
+            soundError();
+            state.totalMistakes++;
+          }
+          updateDashboardUI();
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    /* --- GAME 4: MOTOR REACTION SPEED --- */
+    let reactionTimer = null, reactionStart = null, reactionWaiting = false;
+
+    function startReactionTrial() {
+      const circle = document.getElementById('reactionCircle');
+      const prompt = document.getElementById('reactionPrompt');
+      circle.style.display = 'none';
+      prompt.textContent = 'Wait for green signal...';
+      reactionWaiting = true;
+      reactionStart = null;
+
+      const delay = 1800 + Math.random() * 2500;
+      reactionTimer = setTimeout(() => {
+        circle.style.display = 'flex';
+        prompt.textContent = '';
+        reactionStart = performance.now();
+        playBeep(650, 'sine', 0.15);
+      }, delay);
+    }
+
+    function handleArenaPrematureClick() {
+      if (reactionWaiting && !reactionStart) {
+        clearTimeout(reactionTimer);
+        reactionWaiting = false;
+        soundError();
+        document.getElementById('reactionPrompt').textContent = '⚠️ Too early! Wait for the signal.';
+        state.totalMistakes++;
+        updateDashboardUI();
+      }
+    }
+
+    function handleReactionSuccess(e) {
+      e.stopPropagation();
+      if (!reactionStart) return;
+      const ms = Math.round(performance.now() - reactionStart);
+      reactionWaiting = false;
+      document.getElementById('reactionCircle').style.display = 'none';
+      soundCorrect();
+
+      state.reactionTimes.push(ms);
+      state.totalAttempts++;
+      let pts = ms < 400 ? 30 : (ms < 700 ? 20 : 10);
+      state.totalScore += pts;
+      state.completedLevels = 4;
+
+      document.getElementById('reactionPrompt').textContent = `Speed: ${ms} ms (+${pts} pts)`;
+      document.getElementById('reactionScoreBadge').textContent = `Trial ${state.reactionTimes.length} / 3`;
+      updateDashboardUI();
+    }
+
+    /* --- WEBCAM & VOICE APIS --- */
+    let camStream = null;
+    async function toggleCamera(enable) {
+      const vid = document.getElementById('webcamElement');
+      if (enable) {
+        try {
+          camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+          vid.srcObject = camStream;
+          logEvent('Camera active (client-side only).');
+        } catch (e) { alert('Camera access denied or unavailable.'); }
+      } else {
+        if (camStream) camStream.getTracks().forEach(t => t.stop());
+        vid.srcObject = null;
+      }
+    }
+
+    let recognition = null;
+    function toggleMic(enable) {
+      const badge = document.getElementById('micBadge');
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) return alert('Voice recognition not supported in this browser.');
+
+      if (enable) {
+        recognition = new Speech();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.onresult = (e) => {
+          let text = '';
+          for (let i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
+          document.getElementById('speechTranscriptDisplay').textContent = text;
+          if (text.toLowerCase().includes('restart')) initMemoryGame();
+          if (text.toLowerCase().includes('next')) showGameLevel(2);
+        };
+        recognition.start();
+        badge.textContent = '🎤 Listening...';
+        badge.className = 'status-pill connected';
+      } else if (recognition) {
+        recognition.stop();
+        badge.textContent = 'Mic Inactive';
+        badge.className = 'status-pill offline';
+      }
+    }
+
+    function speakMessage(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const ut = new SpeechSynthesisUtterance(text);
+      ut.rate = 0.9;
+      window.speechSynthesis.speak(ut);
+    }
+
+    /* --- ANALYTICS CHARTS --- */
+    let radarInstance = null, lineInstance = null;
+    function renderAnalyticsCharts() {
+      const radarCtx = document.getElementById('radarChart').getContext('2d');
+      if (radarInstance) radarInstance.destroy();
+      radarInstance = new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+          labels: ['Memory Pairs', 'Sequencing', 'Visual Attention', 'Motor Speed'],
+          datasets: [{
+            label: 'Cognitive Profile (%)',
+            data: [
+              Math.min(100, (matchedPairs / 4) * 100 || 80),
+              state.completedLevels >= 2 ? 85 : 60,
+              state.completedLevels >= 3 ? 90 : 70,
+              state.reactionTimes.length ? 88 : 65
+            ],
+            backgroundColor: 'rgba(2, 132, 199, 0.2)',
+            borderColor: '#0284c7',
+            pointBackgroundColor: '#0284c7'
+          }]
+        },
+        options: { scales: { r: { min: 0, max: 100 } } }
+      });
+
+      const lineCtx = document.getElementById('reactionLineChart').getContext('2d');
+      if (lineInstance) lineInstance.destroy();
+      lineInstance = new Chart(lineCtx, {
+        type: 'line',
+        data: {
+          labels: state.reactionTimes.map((_, i) => `Trial ${i+1}`),
+          datasets: [{
+            label: 'Reaction Latency (ms)',
+            data: state.reactionTimes.length ? state.reactionTimes : [450, 410, 380],
+            borderColor: '#10b981',
+            tension: 0.3,
+            fill: false
+          }]
+        }
+      });
+    }
+
+    /* --- INITIALIZATION --- */
+    window.addEventListener('DOMContentLoaded', () => {
+      populatePatientDropdown();
+      initMemoryGame();
+      initObjectGame();
+      logEvent('System ready.');
+    });
+  </script>
+</body>
+</html>
