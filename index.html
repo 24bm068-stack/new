@@ -3,521 +3,445 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CognitiveCare 3.0 — AI-Assisted Cognitive Platform</title>
+  <title>CognitiveCare — AI Dementia Assistance Platform</title>
 
-  <!-- External Resources: Fonts, Icons & Chart.js -->
+  <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <style>
-    /* ==========================================================================
-       1. CSS DESIGN SYSTEM & THEMING VARIABLES
-       ========================================================================== */
     :root {
-      --font-scale: 1rem;
-      --bg-page: #f1f6fb;
+      --bg-page: #edf6fd;
       --surface: #ffffff;
-      --surface-subtle: #f8fafc;
-      --surface-border: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
+      --surface-subtle: #f4f9fd;
+      --border: #cde4f5;
+      --text-main: #0c273d;
+      --text-muted: #537189;
       --primary: #0284c7;
       --primary-hover: #0369a1;
       --primary-light: #e0f2fe;
-      --secondary: #64748b;
+      --lady-ai: #ec4899;
+      --lady-ai-light: #fce7f3;
       --success: #10b981;
       --success-light: #dcfce7;
       --warning: #f59e0b;
-      --warning-light: #fef3c7;
       --danger: #ef4444;
-      --danger-light: #fee2e2;
-      --radius-sm: 8px;
-      --radius-md: 14px;
       --radius-lg: 20px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-      --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.06);
-      --sidebar-width: 260px;
-    }
-
-    body.dark-mode {
-      --bg-page: #0b1324;
-      --surface: #131f38;
-      --surface-subtle: #1c2b4d;
-      --surface-border: #283a63;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #38bdf8;
-      --primary-hover: #0284c7;
-      --primary-light: #163658;
-    }
-
-    body.high-contrast {
-      --bg-page: #000000;
-      --surface: #111111;
-      --surface-subtle: #222222;
-      --surface-border: #555555;
-      --text-main: #ffffff;
-      --text-muted: #dddddd;
-      --primary: #00d4ff;
-      --primary-light: #003644;
-      --success: #00ff66;
-      --warning: #ffea00;
-      --danger: #ff3333;
+      --radius-md: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 24px rgba(12, 39, 61, 0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      font-size: var(--font-scale);
       background: var(--bg-page);
       color: var(--text-main);
-      display: flex;
       min-height: 100vh;
-      overflow-x: hidden;
-      transition: background 0.25s, color 0.25s;
-    }
-
-    /* ==========================================================================
-       2. SIDEBAR NAVIGATION
-       ========================================================================== */
-    .app-sidebar {
-      width: var(--sidebar-width);
-      background: var(--surface);
-      border-right: 1px solid var(--surface-border);
       display: flex;
       flex-direction: column;
-      position: fixed;
-      top: 0; bottom: 0; left: 0;
-      z-index: 40;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .brand-header {
-      padding: 22px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid var(--surface-border);
-    }
-    .brand-icon {
-      width: 44px; height: 44px;
-      background: var(--primary-light);
-      border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem;
-    }
-    .brand-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--primary);
-      line-height: 1.2;
-    }
-    .brand-title span {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      display: block;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .nav-menu {
-      flex: 1;
-      padding: 16px 12px;
-      list-style: none;
-      overflow-y: auto;
-    }
-    .nav-item { margin-bottom: 4px; }
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      color: var(--text-muted);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.92rem;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      width: 100%;
-      text-align: left;
-      transition: all 0.2s;
-    }
-    .nav-link:hover {
-      background: var(--surface-subtle);
-      color: var(--text-main);
-    }
-    .nav-link.active {
-      background: var(--primary);
-      color: #ffffff;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
-    }
-    .nav-link svg { width: 20px; height: 20px; stroke-width: 2.2; }
-
-    .sidebar-footer {
-      padding: 16px;
-      border-top: 1px solid var(--surface-border);
-    }
-    .active-patient-chip {
-      background: var(--surface-subtle);
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--surface-border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .patient-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--primary-light);
-      color: var(--primary);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.85rem;
-    }
-
-    /* ==========================================================================
-       3. TOP HEADER & ACCESSIBILITY CONTROLS
-       ========================================================================== */
-    .app-main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .top-header {
+    /* Top Sticky Header */
+    header {
       background: var(--surface);
-      border-bottom: 1px solid var(--surface-border);
+      border-bottom: 2px solid var(--border);
       padding: 14px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: 30;
-      box-shadow: var(--shadow-sm);
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .mobile-menu-btn {
-      display: none;
-      background: transparent;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text-main);
-    }
-
-    .header-actions {
+    .brand {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+    .brand-icon {
+      font-size: 2rem;
+      background: var(--primary-light);
+      width: 46px; height: 46px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-text h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .brand-text p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
 
-    .badge-pill {
+    /* Lady AI Live Status Badge */
+    .lady-ai-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--lady-ai-light);
+      border: 1.5px solid var(--lady-ai);
+      padding: 6px 14px;
+      border-radius: 999px;
+      color: #9d174d;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .lady-avatar {
+      width: 28px; height: 28px;
+      background: var(--lady-ai);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      position: relative;
+    }
+    .lady-avatar.speaking::after {
+      content: '';
+      position: absolute;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--lady-ai);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+
+    .status-pill {
       font-size: 0.78rem;
       font-weight: 600;
       padding: 6px 12px;
       border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
-    .badge-pill.online { background: var(--success-light); color: var(--success); }
-    .badge-pill.demo { background: var(--warning-light); color: var(--warning); }
+    .status-pill.connected { background: var(--success-light); color: var(--success); }
+    .status-pill.offline { background: #fee2e2; color: var(--danger); }
 
-    .accessibility-bar {
-      display: flex;
-      background: var(--surface-subtle);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-sm);
-      padding: 2px;
-    }
-    .acc-btn {
-      background: transparent;
-      border: none;
-      padding: 6px 10px;
-      font-weight: 700;
-      font-size: 0.82rem;
-      color: var(--text-main);
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .acc-btn:hover { background: rgba(0,0,0,0.06); }
-
-    /* ==========================================================================
-       4. MAIN CONTENT & SECTIONS
-       ========================================================================== */
-    .page-content {
-      padding: 28px;
+    /* Layout Containers */
+    .container {
+      width: 92%;
+      max-width: 1080px;
+      margin: 30px auto;
       flex: 1;
     }
-    .view-section { display: none; }
-    .view-section.active { display: block; animation: fadeIn 0.2s ease-out; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Cards & Grids */
     .card {
       background: var(--surface);
-      border: 1px solid var(--surface-border);
       border-radius: var(--radius-lg);
-      padding: 24px;
+      border: 1px solid var(--border);
+      padding: 28px;
       margin-bottom: 24px;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow);
     }
     .card-title {
-      font-size: 1.18rem;
-      font-weight: 700;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-      color: var(--text-main);
+      gap: 10px;
     }
 
-    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-
-    /* Metric Banners */
-    .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
+    /* Form Fields */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
     }
-    .metric-icon {
-      width: 52px; height: 52px;
-      border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem;
-    }
-    .metric-val { font-size: 1.85rem; font-weight: 800; color: var(--text-main); line-height: 1.1; }
-    .metric-lbl { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-top: 3px; }
-
-    /* Buttons & Form Inputs */
-    .btn {
-      font-family: inherit;
-      font-size: 0.92rem;
-      font-weight: 600;
-      padding: 10px 18px;
-      border-radius: var(--radius-sm);
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      text-decoration: none;
-    }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--surface-border); }
-    .btn-secondary:hover { background: var(--surface-border); }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-lg { padding: 14px 26px; font-size: 1.05rem; }
-
-    .form-group { margin-bottom: 16px; }
     .form-group label {
       display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
     }
     .form-control {
       width: 100%;
-      padding: 11px 14px;
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
       font-family: inherit;
-      background: var(--surface);
+      background: var(--surface-subtle);
       color: var(--text-main);
+      transition: all 0.2s;
     }
     .form-control:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
     }
 
-    /* Tables */
-    .table-container { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.92rem; }
-    th {
+    /* Dementia Stage Selector Cards */
+    .stage-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+    .stage-card {
       background: var(--surface-subtle);
-      padding: 12px 16px;
-      font-weight: 600;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.25s;
+      position: relative;
+    }
+    .stage-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .stage-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.2);
+    }
+    .stage-card h4 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .stage-card p {
+      font-size: 0.82rem;
       color: var(--text-muted);
-      border-bottom: 1px solid var(--surface-border);
+      line-height: 1.4;
     }
-    td {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--surface-border);
-      color: var(--text-main);
+    .stage-badge {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
     }
-    tr:hover td { background: var(--surface-subtle); }
+    .stage-card.early .stage-badge { background: #fef3c7; color: #b45309; }
+    .stage-card.middle .stage-badge { background: #e0f2fe; color: #0369a1; }
+    .stage-card.late .stage-badge { background: #dcfce7; color: #15803d; }
 
-    /* ==========================================================================
-       5. COGNITIVE GAMES ENGINE STYLES
-       ========================================================================== */
+    /* Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 26px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface-subtle); border: 1.5px solid var(--border); color: var(--text-main); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-lg { font-size: 1.15rem; padding: 16px 36px; border-radius: var(--radius-lg); }
+
+    /* Dynamic Workout View Elements */
+    #workoutSection { display: none; }
+    
+    .stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-box strong {
+      display: block;
+      font-size: 1.8rem;
+      color: var(--primary);
+      font-weight: 800;
+    }
+    .stat-box span {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Media Panels */
+    .media-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    video {
+      width: 100%;
+      height: 220px;
+      background: #111;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+    }
+    .transcript-box {
+      background: var(--surface-subtle);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      min-height: 120px;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    /* Games Styling */
     .game-arena {
       background: var(--surface-subtle);
+      border: 2px dashed var(--border);
       border-radius: var(--radius-lg);
-      border: 1px solid var(--surface-border);
-      padding: 28px;
-      margin: 20px 0;
-      min-height: 400px;
+      padding: 30px;
+      min-height: 380px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      margin: 20px 0;
     }
+    .game-pane { display: none; width: 100%; }
+    .game-pane.active { display: block; }
 
-    /* Game 1: 3D Memory Flip */
+    /* Memory Match Cards */
     .memory-grid {
       display: grid;
-      gap: 14px;
-      max-width: 640px;
-      width: 100%;
+      gap: 16px;
+      max-width: 620px;
+      margin: 0 auto;
       perspective: 1000px;
     }
-    .memory-grid.cards-6 { grid-template-columns: repeat(3, 1fr); }
+    .memory-grid.cards-4 { grid-template-columns: repeat(2, 1fr); max-width: 360px; }
     .memory-grid.cards-8 { grid-template-columns: repeat(4, 1fr); }
     .memory-grid.cards-12 { grid-template-columns: repeat(4, 1fr); }
 
     .mem-card {
       aspect-ratio: 1;
-      position: relative;
       cursor: pointer;
+      position: relative;
       user-select: none;
     }
-    .mem-card-inner {
+    .mem-inner {
       width: 100%; height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      transition: transform 0.4s ease;
+      transition: transform 0.4s;
       border-radius: var(--radius-md);
     }
-    .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card.flipped .mem-inner { transform: rotateY(180deg); }
     .mem-front, .mem-back {
       position: absolute;
       width: 100%; height: 100%;
       backface-visibility: hidden;
       border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.2rem;
-      border: 2px solid var(--surface-border);
-      box-shadow: var(--shadow-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+      border: 2.5px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
     }
-    .mem-front {
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: #fff;
-    }
-    .mem-back {
-      background: var(--surface);
-      transform: rotateY(180deg);
-    }
-    .mem-card.matched .mem-back {
-      background: var(--success-light);
-      border-color: var(--success);
-    }
+    .mem-front { background: var(--primary); color: white; font-weight: 800; font-size: 2rem; }
+    .mem-back { background: var(--surface); transform: rotateY(180deg); }
+    .mem-card.matched .mem-back { background: var(--success-light); border-color: var(--success); }
 
-    /* Game 2: Sequence Simon */
-    .simon-board {
+    /* Sequence Memory */
+    .sequence-monitor {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 24px;
+      letter-spacing: 6px;
+      text-align: center;
+    }
+    .sequence-pad {
       display: flex;
       gap: 14px;
-      max-width: 520px;
-      width: 100%;
       justify-content: center;
-      margin: 24px 0;
+      flex-wrap: wrap;
     }
-    .simon-pad {
-      width: 78px; height: 78px;
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      border: 3px solid var(--surface-border);
+    .seq-btn {
+      width: 74px; height: 74px;
       font-size: 1.8rem;
       font-weight: 800;
-      color: var(--text-main);
+      border-radius: var(--radius-md);
+      border: 3px solid var(--border);
+      background: var(--surface);
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
       transition: all 0.15s;
     }
-    .simon-pad.active-lit {
+    .seq-btn.lit {
       background: var(--primary);
-      color: #fff;
+      color: white;
       transform: scale(1.1);
-      box-shadow: 0 0 25px rgba(2, 132, 199, 0.7);
+      box-shadow: 0 0 25px rgba(2, 132, 199, 0.6);
     }
 
-    /* Game 3: Visual Search */
-    .object-search-grid {
+    /* Find Object */
+    .target-callout {
+      background: #fef3c7;
+      border: 2px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 16px 28px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #92400e;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .object-grid {
       display: grid;
       gap: 16px;
-      max-width: 680px;
+      max-width: 620px;
+      margin: 0 auto;
       width: 100%;
     }
-    .object-search-grid.items-6 { grid-template-columns: repeat(3, 1fr); }
-    .object-search-grid.items-9 { grid-template-columns: repeat(3, 1fr); }
-    .object-search-grid.items-12 { grid-template-columns: repeat(4, 1fr); }
+    .object-grid.items-3 { grid-template-columns: repeat(3, 1fr); }
+    .object-grid.items-6 { grid-template-columns: repeat(3, 1fr); }
+    .object-grid.items-9 { grid-template-columns: repeat(3, 1fr); }
 
-    .obj-item-btn {
+    .obj-btn {
       background: var(--surface);
-      border: 2px solid var(--surface-border);
+      border: 2px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 16px;
-      font-size: 2.4rem;
+      padding: 18px;
+      font-size: 2.8rem;
       cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
       transition: all 0.2s;
     }
-    .obj-item-btn span { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
-    .obj-item-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .obj-btn span { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+    .obj-btn:hover { border-color: var(--primary); transform: translateY(-3px); }
 
-    /* Game 4: Reaction Arena */
+    /* Reaction Arena */
     .reaction-zone {
       width: 100%;
-      max-width: 600px;
-      height: 320px;
+      height: 300px;
       background: var(--surface);
-      border: 2px dashed var(--surface-border);
+      border: 2px dashed var(--border);
       border-radius: var(--radius-lg);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       user-select: none;
+      position: relative;
     }
     .reaction-circle {
       width: 140px; height: 140px;
@@ -526,1650 +450,901 @@
       display: none;
       align-items: center; justify-content: center;
       color: white; font-weight: 800; font-size: 1.2rem;
-      box-shadow: 0 0 35px rgba(2, 132, 199, 0.6);
       cursor: pointer;
+      box-shadow: 0 0 35px rgba(2, 132, 199, 0.6);
+    }
+    .reaction-circle.large { width: 180px; height: 180px; font-size: 1.4rem; }
+
+    /* Final Screen */
+    .celebration-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .big-score {
+      font-size: 4.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 10px 0;
     }
 
-    /* Modal Dialogs */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
-    .modal-box {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--surface-border);
-      width: 100%;
-      max-width: 580px;
-      padding: 28px;
-      box-shadow: var(--shadow-md);
-    }
-
-    /* Media Queries & Print */
-    @media (max-width: 1024px) {
-      .grid-4 { grid-template-columns: repeat(2, 1fr); }
-      .grid-3 { grid-template-columns: 1fr; }
-    }
     @media (max-width: 768px) {
-      .app-sidebar { transform: translateX(-100%); }
-      .app-sidebar.open { transform: translateX(0); }
-      .app-main { margin-left: 0; }
-      .mobile-menu-btn { display: block; }
-      .grid-2 { grid-template-columns: 1fr; }
-      .top-header { padding: 12px 16px; }
-      .page-content { padding: 16px; }
-    }
-
-    @media print {
-      .app-sidebar, .top-header, .btn, .accessibility-bar { display: none !important; }
-      .app-main { margin-left: 0; }
-      body { background: white; color: black; }
-      .card { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
+      .stage-options, .media-grid, .stats-ribbon { grid-template-columns: 1fr; }
+      .memory-grid.cards-8, .memory-grid.cards-12 { grid-template-columns: repeat(3, 1fr); }
+      .object-grid.items-6, .object-grid.items-9 { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 
-  <!-- ==========================================================================
-       SIDEBAR NAVIGATION
-       ========================================================================== -->
-  <aside class="app-sidebar" id="appSidebar">
-    <div class="brand-header">
+  <!-- Header -->
+  <header>
+    <div class="brand">
       <div class="brand-icon">🧠</div>
-      <div class="brand-title">
-        CognitiveCare 3.0
-        <span>Clinical Neuro-Suite</span>
+      <div class="brand-text">
+        <h1>CognitiveCare</h1>
+        <p>AI-Guided Dementia Assistance & Cognitive Training</p>
       </div>
     </div>
 
-    <ul class="nav-menu">
-      <li class="nav-item">
-        <button class="nav-link active" onclick="navigate('dashboard')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-          Dashboard
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('patients')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-          Patients
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('games')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          Cognitive Games
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('insights')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          AI Insights
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('caregiver')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-          Caregiver Portal
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('history')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          Session History
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('reports')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          Reports & Analytics
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="navigate('settings')">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          Settings
-        </button>
-      </li>
-    </ul>
-
-    <div class="sidebar-footer">
-      <div class="active-patient-chip">
-        <div class="patient-avatar" id="sidebarAvatar">P</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-size:0.85rem; font-weight:700; truncate;" id="sidebarPatientName">Loading...</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);" id="sidebarPatientMeta">ID: pt_default</div>
-        </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <!-- Lady AI Speaking Badge -->
+      <div class="lady-ai-badge" id="ladyAiBadge" onclick="speakLadyGuide()">
+        <div class="lady-avatar" id="ladyAvatar">👩‍⚕️</div>
+        <span id="ladyAiStatusText">Lady AI: "Tap for Voice Guide"</span>
       </div>
+
+      <!-- Firebase Pill -->
+      <span id="firebaseStatus" class="status-pill offline">Firebase: Connecting...</span>
     </div>
-  </aside>
+  </header>
 
-  <!-- ==========================================================================
-       MAIN VIEW CONTAINER
-       ========================================================================== -->
-  <div class="app-main">
-    
-    <!-- Top Header -->
-    <header class="top-header">
-      <div class="header-left">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <h2 style="font-size: 1.15rem; font-weight:700;" id="headerSectionTitle">Dashboard Overview</h2>
+  <div class="container">
+
+    <!-- ==================== SCREEN 1: INTAKE & STAGE SCREEN ==================== -->
+    <section id="intakeSection" class="card">
+      <div class="card-title">
+        <span>👤 Patient Clinical Intake & Stage Assessment</span>
       </div>
+      <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:20px;">
+        Please enter the patient's information. The <strong>Stage of Dementia</strong> will calibrate the AI cognitive workout — early stages receive rigorous mental challenges, while advanced stages receive gentle, accessible stimulation.
+      </p>
 
-      <div class="header-actions">
-        <!-- Database Connectivity Badge -->
-        <span id="firebaseStatusBadge" class="badge-pill demo">
-          ● Local Storage Mode
-        </span>
-
-        <!-- Accessibility Bar -->
-        <div class="accessibility-bar">
-          <button class="acc-btn" onclick="adjustFont(-0.1)" title="Smaller Text">A-</button>
-          <button class="acc-btn" onclick="resetFont()" title="Standard Text">A</button>
-          <button class="acc-btn" onclick="adjustFont(0.1)" title="Larger Text">A+</button>
-          <button class="acc-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌓</button>
-          <button class="acc-btn" onclick="toggleHighContrast()" title="Toggle High Contrast">⚡</button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Page Content View -->
-    <main class="page-content">
-
-      <!-- ==================== VIEW 1: DASHBOARD ==================== -->
-      <section id="view-dashboard" class="view-section active">
-        <!-- Metrics Ribbon -->
-        <div class="grid-4" style="margin-bottom: 24px;">
-          <div class="metric-card">
-            <div class="metric-icon" style="background:#e0f2fe; color:#0284c7;">👥</div>
-            <div>
-              <div class="metric-val" id="dashTotalPatients">0</div>
-              <div class="metric-lbl">Registered Patients</div>
-            </div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon" style="background:#dcfce7; color:#10b981;">🎯</div>
-            <div>
-              <div class="metric-val" id="dashCompletedSessions">0</div>
-              <div class="metric-lbl">Completed Sessions</div>
-            </div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon" style="background:#fef3c7; color:#f59e0b;">📊</div>
-            <div>
-              <div class="metric-val" id="dashAverageAccuracy">0%</div>
-              <div class="metric-lbl">Average Accuracy</div>
-            </div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon" style="background:#fee2e2; color:#ef4444;">⚡</div>
-            <div>
-              <div class="metric-val" id="dashAvgReaction">-- ms</div>
-              <div class="metric-lbl">Avg Reaction Speed</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <!-- Active Patient Status Card -->
-          <div class="card">
-            <div class="card-title">
-              <span>👤 Active Patient Profile</span>
-              <button class="btn btn-secondary" style="font-size:0.8rem; padding:4px 10px;" onclick="navigate('patients')">Switch</button>
-            </div>
-            <div style="display:flex; align-items:center; gap:16px; margin-bottom: 16px;">
-              <div class="patient-avatar" style="width:54px; height:54px; font-size:1.4rem;" id="dashBigAvatar">P</div>
-              <div>
-                <h3 style="font-size:1.3rem;" id="dashPatientTitle">John Doe</h3>
-                <p style="color:var(--text-muted); font-size:0.9rem;" id="dashPatientSubtitle">Age: 72 | Caregiver: Sarah Doe</p>
-              </div>
-            </div>
-            <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:18px;" id="dashPatientNotes">
-              Patient baseline normal. Recommended for daily memory and motor reaction training.
-            </p>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn btn-primary btn-lg" onclick="launchTrainingSession()">
-                ▶ Launch Cognitive Workout
-              </button>
-              <button class="btn btn-secondary" onclick="printReport()">
-                🖨️ Clinical Summary
-              </button>
-            </div>
-          </div>
-
-          <!-- Weekly Progress Trend -->
-          <div class="card">
-            <div class="card-title">
-              <span>📈 Weekly Activity Volume</span>
-            </div>
-            <div style="height: 220px;">
-              <canvas id="dashWeeklyChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Sessions Feed -->
-        <div class="card">
-          <div class="card-title">
-            <span>🕒 Recent Clinical Sessions</span>
-            <button class="btn btn-secondary" style="font-size:0.8rem; padding:4px 10px;" onclick="navigate('history')">View Full Log</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Session ID</th>
-                  <th>Patient</th>
-                  <th>Activity</th>
-                  <th>Difficulty</th>
-                  <th>Score</th>
-                  <th>Accuracy</th>
-                  <th>Timestamp</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="dashRecentSessionsTbody">
-                <tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No recorded sessions found.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 2: PATIENTS ==================== -->
-      <section id="view-patients" class="view-section">
-        <div class="card">
-          <div class="card-title">
-            <span>👤 Patient Records Management</span>
-            <button class="btn btn-primary" onclick="openPatientModal()">+ Register New Patient</button>
-          </div>
-          
-          <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
-            <input type="text" id="patientSearchInput" class="form-control" placeholder="Search patient by name or ID..." style="max-width:320px;" oninput="renderPatientsList()">
-          </div>
-
-          <div class="grid-3" id="patientCardsGrid">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 3: COGNITIVE GAMES ==================== -->
-      <section id="view-games" class="view-section">
-        <!-- Game Selector Header -->
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
-            <div>
-              <h2 style="font-size:1.3rem; font-weight:800;">Cognitive Training Gymnasium</h2>
-              <p style="color:var(--text-muted); font-size:0.9rem;">Select an activity and training tier.</p>
-            </div>
-
-            <!-- Intelligent Adaptive Recommendation Badge -->
-            <div id="adaptiveRecommendationBanner" style="background:var(--primary-light); border:1px solid var(--primary); padding:8px 16px; border-radius:var(--radius-md); font-size:0.85rem;">
-              💡 <strong>AI Recommendation:</strong> <span id="adaptiveReasonText">Analyzing patient history...</span>
-            </div>
-          </div>
-
-          <!-- Tabs for 4 Games -->
-          <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
-            <button class="btn btn-secondary active-game-tab" id="tabBtnGame1" onclick="switchGameView(1)">1. 🧩 Memory Match</button>
-            <button class="btn btn-secondary" id="tabBtnGame2" onclick="switchGameView(2)">2. 🔢 Sequence Memory</button>
-            <button class="btn btn-secondary" id="tabBtnGame3" onclick="switchGameView(3)">3. ☕ Find the Object</button>
-            <button class="btn btn-secondary" id="tabBtnGame4" onclick="switchGameView(4)">4. ⚡ Reaction Challenge</button>
-          </div>
-        </div>
-
-        <!-- GAME CONTAINER 1: MEMORY MATCH -->
-        <div id="gameModule-1" class="card game-module">
-          <div class="card-title">
-            <span>🧩 Level 1: Spatial Memory Match</span>
-            <div style="display:flex; gap:8px;">
-              <select id="memDifficultySelect" class="form-control" style="width:auto; padding:6px 10px;" onchange="initMemoryGame()">
-                <option value="easy">Easy (6 Cards / 3 Pairs)</option>
-                <option value="medium" selected>Medium (8 Cards / 4 Pairs)</option>
-                <option value="hard">Hard (12 Cards / 6 Pairs)</option>
-              </select>
-            </div>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.92rem;">Flip pairs of cards to locate matching visual symbols. Minimizes working memory load through pattern recognition.</p>
-          
-          <div class="game-arena">
-            <div class="memory-grid cards-8" id="memoryGridArea"></div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div style="display:flex; gap:16px; font-weight:600; font-size:0.92rem;">
-              <span>Pairs: <strong id="memPairsFound">0/4</strong></span>
-              <span>Attempts: <strong id="memAttemptsCount">0</strong></span>
-              <span>Mistakes: <strong id="memMistakesCount">0</strong></span>
-              <span>Time: <strong id="memTimerElapsed">0s</strong></span>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-secondary" onclick="initMemoryGame()">🔄 Restart</button>
-              <button class="btn btn-primary" onclick="switchGameView(2)">Next Activity →</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- GAME CONTAINER 2: SEQUENCE MEMORY -->
-        <div id="gameModule-2" class="card game-module" style="display:none;">
-          <div class="card-title">
-            <span>🔢 Level 2: Sequential Attention & Working Memory</span>
-            <select id="seqDifficultySelect" class="form-control" style="width:auto; padding:6px 10px;">
-              <option value="easy">Easy (3 Digits)</option>
-              <option value="medium" selected>Medium (4 Digits)</option>
-              <option value="hard">Hard (5 Digits)</option>
-            </select>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.92rem;">Watch the highlighted sequence illumination. Reproduce the pattern in the exact order.</p>
-
-          <div class="game-arena">
-            <div style="font-size:2rem; font-weight:800; color:var(--primary); margin-bottom:14px;" id="seqStatusDisplay">Press START</div>
-            <div class="simon-board">
-              <button class="simon-pad" id="simon-1" onclick="handleSimonTap(1)">1</button>
-              <button class="simon-pad" id="simon-2" onclick="handleSimonTap(2)">2</button>
-              <button class="simon-pad" id="simon-3" onclick="handleSimonTap(3)">3</button>
-              <button class="simon-pad" id="simon-4" onclick="handleSimonTap(4)">4</button>
-              <button class="simon-pad" id="simon-5" onclick="handleSimonTap(5)">5</button>
-            </div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div style="font-weight:600;">Round Score: <strong id="seqScoreVal">0</strong></div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-primary" onclick="startSimonTrial()">▶ Start Sequence</button>
-              <button class="btn btn-secondary" onclick="resetSimon()">Clear</button>
-              <button class="btn btn-primary" onclick="switchGameView(3)">Next Activity →</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- GAME CONTAINER 3: FIND THE OBJECT -->
-        <div id="gameModule-3" class="card game-module" style="display:none;">
-          <div class="card-title">
-            <span>☕ Level 3: Visual Discrimination & Search</span>
-            <select id="objDifficultySelect" class="form-control" style="width:auto; padding:6px 10px;" onchange="initObjectGame()">
-              <option value="easy">Easy (6 Objects)</option>
-              <option value="medium" selected>Medium (9 Objects)</option>
-              <option value="hard">Hard (12 Objects)</option>
-            </select>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.92rem;">Identify and tap the requested target item among the visual distractors as rapidly as possible.</p>
-
-          <div class="game-arena">
-            <div style="background:var(--warning-light); border:2px solid var(--warning); padding:12px 24px; border-radius:var(--radius-md); font-size:1.3rem; font-weight:800; color:#92400e; margin-bottom:20px;" id="objectTargetPrompt">
-              Locating target...
-            </div>
-            <div class="object-search-grid items-9" id="objectSearchGrid"></div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div style="font-weight:600;">Correct Selections: <strong id="objCorrectCount">0</strong></div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-secondary" onclick="initObjectGame()">🔄 New Target</button>
-              <button class="btn btn-primary" onclick="switchGameView(4)">Next Activity →</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- GAME CONTAINER 4: REACTION SPEED -->
-        <div id="gameModule-4" class="card game-module" style="display:none;">
-          <div class="card-title">
-            <span>⚡ Level 4: Psychomotor Response Speed</span>
-            <span class="badge-pill online" id="reactionTrialBadge">Trial 0 / 3</span>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.92rem;">Wait for the signal to appear. Tap as rapidly as possible. Warning: Premature clicks result in a false-start penalty!</p>
-
-          <div class="game-arena">
-            <div class="reaction-zone" id="reactionZone" onclick="handleReactionPrematureClick()">
-              <div class="reaction-circle" id="reactionTargetCircle" onclick="handleReactionSuccess(event)">TAP!</div>
-              <div id="reactionInstructionText" style="font-size:1.2rem; font-weight:700; color:var(--text-muted);">Click START TRIAL below</div>
-            </div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div style="font-weight:600;">Best Latency: <strong id="reactionBestVal">-- ms</strong></div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-primary" onclick="startReactionTrial()">▶ Start Trial</button>
-              <button class="btn btn-danger" onclick="concludeWorkoutSession()">🏁 Conclude Workout</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 4: AI INSIGHTS ==================== -->
-      <section id="view-insights" class="view-section">
-        <div class="card">
-          <div class="card-title">
-            <span>🤖 AI-Assisted Cognitive Progress Analytics</span>
-            <button class="btn btn-primary" onclick="generateAIProgressSummary()">⚡ Refresh Analysis</button>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:20px;">
-            Synthesizes session telemetry, reaction latencies, and accuracy trajectories into a clinical summary.
-          </p>
-
-          <div class="grid-2">
-            <!-- Longitudinal Radar Chart -->
-            <div style="background:var(--surface-subtle); padding:20px; border-radius:var(--radius-md); border:1px solid var(--surface-border);">
-              <h3 style="font-size:1.05rem; margin-bottom:12px;">Cognitive Domain Balance</h3>
-              <div style="height:280px;"><canvas id="aiDomainRadarChart"></canvas></div>
-            </div>
-
-            <!-- AI Narrative Summary Box -->
-            <div style="background:var(--surface-subtle); padding:20px; border-radius:var(--radius-md); border:1px solid var(--surface-border); display:flex; flex-direction:column;">
-              <h3 style="font-size:1.05rem; margin-bottom:12px;">Clinical Progress Narrative</h3>
-              <div style="flex:1; overflow-y:auto; line-height:1.6; font-size:0.95rem;" id="aiNarrativeContent">
-                Select a patient and complete at least one training session to generate personalized cognitive insights.
-              </div>
-            </div>
-          </div>
-
-          <!-- Suggested Practice Goals for Next Week -->
-          <div style="margin-top:24px; padding:18px; background:var(--primary-light); border-radius:var(--radius-md); border:1px solid var(--primary);">
-            <h4 style="color:var(--primary); font-size:1rem; margin-bottom:6px;">🎯 Suggested Goals for Next Week</h4>
-            <ul id="aiSuggestedGoalsList" style="padding-left:20px; font-size:0.92rem; line-height:1.6;">
-              <li>Maintain regular practice (at least 3 sessions per week).</li>
-              <li>Focus on Sequence Memory to stimulate working memory encoding.</li>
-            </ul>
-          </div>
-
-          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:16px;">
-            * Ethical AI Disclosure: Summaries are generated using algorithmic performance trends and do not constitute neurological or psychiatric diagnoses.
-          </p>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 5: CAREGIVER PORTAL ==================== -->
-      <section id="view-caregiver" class="view-section">
-        <div class="grid-2">
-          <!-- Training Schedule & Difficulty Overrides -->
-          <div class="card">
-            <div class="card-title">
-              <span>🛡️ Caregiver Tuning & Overrides</span>
-            </div>
-            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">Authorize difficulty levels and manage notifications.</p>
-
-            <form onsubmit="handleSaveCaregiverSettings(event)">
-              <div class="form-group">
-                <label>Assigned Caregiver Contact</label>
-                <input type="text" id="caregiverNameInput" class="form-control" value="Sarah Doe, RN">
-              </div>
-              <div class="form-group">
-                <label>Adaptive Difficulty Override</label>
-                <select id="caregiverDifficultyOverride" class="form-control">
-                  <option value="auto">Automatic (AI-Recommended)</option>
-                  <option value="easy">Force Easy Practice Mode</option>
-                  <option value="medium">Force Medium Training Mode</option>
-                  <option value="hard">Force High Intensity Mode</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Clinical Observation Notes</label>
-                <textarea id="caregiverClinicalNotes" class="form-control" rows="3">Patient showed high alertness during morning sessions.</textarea>
-              </div>
-              <button type="submit" class="btn btn-primary">Save Settings</button>
-            </form>
-          </div>
-
-          <!-- Smart Practice Reminders -->
-          <div class="card">
-            <div class="card-title">
-              <span>⏰ Scheduled Practice Reminders</span>
-              <button class="btn btn-secondary" style="font-size:0.8rem;" onclick="openReminderModal()">+ Add Reminder</button>
-            </div>
-            <div id="remindersListArea">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 6: SESSION HISTORY ==================== -->
-      <section id="view-history" class="view-section">
-        <div class="card">
-          <div class="card-title">
-            <span>📚 Complete Clinical Session History</span>
-            <div style="display:flex; gap:10px;">
-              <button class="btn btn-secondary" onclick="exportSessionsCSV()">📥 Export CSV</button>
-              <button class="btn btn-primary" onclick="printReport()">🖨️ Print Summary</button>
-            </div>
-          </div>
-
-          <!-- Filters -->
-          <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
-            <select id="historyFilterPatient" class="form-control" style="width:auto;" onchange="renderHistoryTable()">
-              <option value="all">All Patients</option>
-            </select>
-            <select id="historyFilterGame" class="form-control" style="width:auto;" onchange="renderHistoryTable()">
-              <option value="all">All Activities</option>
-              <option value="Memory Match">Memory Match</option>
-              <option value="Sequence Memory">Sequence Memory</option>
-              <option value="Find the Object">Find the Object</option>
-              <option value="Reaction Challenge">Reaction Challenge</option>
-            </select>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Session Ref</th>
-                  <th>Patient Name</th>
-                  <th>Activity</th>
-                  <th>Difficulty</th>
-                  <th>Duration</th>
-                  <th>Score</th>
-                  <th>Accuracy</th>
-                  <th>Date & Time</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="historyTableTbody">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 7: REPORTS & ANALYTICS ==================== -->
-      <section id="view-reports" class="view-section">
-        <div class="card">
-          <div class="card-title">
-            <span>📊 Longitudinal Cognitive Reports</span>
-            <button class="btn btn-primary" onclick="printReport()">🖨️ Print Clinical Report</button>
-          </div>
-          
-          <div class="grid-2">
-            <div style="background:var(--surface-subtle); padding:20px; border-radius:var(--radius-md); border:1px solid var(--surface-border);">
-              <h3 style="font-size:1.05rem; margin-bottom:12px;">Accuracy Across Cognitive Activities (%)</h3>
-              <div style="height:260px;"><canvas id="repAccuracyChart"></canvas></div>
-            </div>
-            <div style="background:var(--surface-subtle); padding:20px; border-radius:var(--radius-md); border:1px solid var(--surface-border);">
-              <h3 style="font-size:1.05rem; margin-bottom:12px;">Psychomotor Reaction Trend (ms)</h3>
-              <div style="height:260px;"><canvas id="repReactionTrendChart"></canvas></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== VIEW 8: SETTINGS ==================== -->
-      <section id="view-settings" class="view-section">
-        <div class="card">
-          <div class="card-title">
-            <span>⚙️ System Configuration & Backend Credentials</span>
-          </div>
-
-          <div class="grid-2">
-            <div>
-              <h3 style="font-size:1.05rem; margin-bottom:14px;">Firebase Realtime Database Setup</h3>
-              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
-                Enter your Firebase Web App configuration below to activate cloud synchronization. When left empty, the application operates reliably in local storage mode.
-              </p>
-              <div class="form-group">
-                <label>Firebase API Key</label>
-                <input type="text" id="cfgApiKey" class="form-control" placeholder="AIzaSy...">
-              </div>
-              <div class="form-group">
-                <label>Database URL</label>
-                <input type="text" id="cfgDbUrl" class="form-control" placeholder="https://your-app-rtdb.firebaseio.com">
-              </div>
-              <div class="form-group">
-                <label>Project ID</label>
-                <input type="text" id="cfgProjectId" class="form-control" placeholder="cognitivecare-app">
-              </div>
-              <button class="btn btn-primary" onclick="saveFirebaseConfig()">Connect to Firebase</button>
-            </div>
-
-            <div>
-              <h3 style="font-size:1.05rem; margin-bottom:14px;">Web Audio & Accessibility Parameters</h3>
-              <div class="form-group">
-                <label>Synthesizer Volume</label>
-                <input type="range" id="cfgAudioVol" min="0" max="1" step="0.1" value="0.2" class="form-control">
-              </div>
-              <div class="form-group">
-                <label>Speech Synthesis Rate</label>
-                <input type="range" id="cfgSpeechRate" min="0.5" max="1.5" step="0.1" value="0.9" class="form-control">
-              </div>
-              <button class="btn btn-secondary" onclick="testAudioSynthesizer()">🔊 Test Tone</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- Footer Disclaimer -->
-    <footer style="text-align: center; padding: 20px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--surface-border); background: var(--surface);">
-      CognitiveCare 3.0 Clinical Prototype &bull; Designed for cognitive wellness exercises & progress logging &bull; Not an FDA-cleared diagnostic medical device.
-    </footer>
-  </div>
-
-  <!-- ==========================================================================
-       MODAL 1: REGISTER PATIENT
-       ========================================================================== -->
-  <div class="modal-overlay" id="patientModal">
-    <div class="modal-box">
-      <h2 style="margin-bottom:16px;">Register Patient Profile</h2>
-      <form onsubmit="handleCreatePatient(event)">
-        <div class="form-group">
-          <label>Full Patient Name</label>
-          <input type="text" id="newPtName" class="form-control" required placeholder="e.g. Margaret Taylor">
-        </div>
-        <div class="grid-2">
+      <form onsubmit="handleStartSession(event)">
+        <div class="form-grid">
           <div class="form-group">
-            <label>Age</label>
-            <input type="number" id="newPtAge" class="form-control" required placeholder="e.g. 78">
+            <label>Patient Full Name *</label>
+            <input type="text" id="patientName" class="form-control" placeholder="e.g. Margaret Evans" required>
+          </div>
+          <div class="form-group">
+            <label>Age *</label>
+            <input type="number" id="patientAge" class="form-control" placeholder="e.g. 78" required>
+          </div>
+          <div class="form-group">
+            <label>Gender *</label>
+            <select id="patientGender" class="form-control" required>
+              <option value="">-- Select Gender --</option>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other / Prefer not to say</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Caregiver Name</label>
-            <input type="text" id="newPtCaregiver" class="form-control" placeholder="e.g. David Taylor">
+            <input type="text" id="caregiverName" class="form-control" placeholder="e.g. David Evans (Son)">
           </div>
         </div>
-        <div class="form-group">
-          <label>Baseline Cognitive Notes</label>
-          <textarea id="newPtNotes" class="form-control" rows="3" placeholder="Notes regarding memory, vision, or motor mobility..."></textarea>
+
+        <!-- STAGE SELECTOR (CRITICAL) -->
+        <label style="font-size:0.95rem; font-weight:800; color:var(--text-main); display:block; margin-top:10px;">
+          Select Dementia Progression Stage:
+        </label>
+        
+        <div class="stage-options">
+          <!-- STAGE 1: BEGINNING -> HARD -->
+          <div class="stage-card early selected" onclick="selectStage('early')" id="card-early">
+            <h4>🌱 Beginning Stage</h4>
+            <p>Mild symptoms, high cognitive recall. Needs stimulating, complex challenges.</p>
+            <span class="stage-badge">Difficulty: Hard</span>
+          </div>
+
+          <!-- STAGE 2: MODERATE -> MEDIUM -->
+          <div class="stage-card middle" onclick="selectStage('middle')" id="card-middle">
+            <h4>🌿 Moderate Stage</h4>
+            <p>Noticeable memory lapses and confusion. Balanced pacing and guidance.</p>
+            <span class="stage-badge">Difficulty: Medium</span>
+          </div>
+
+          <!-- STAGE 3: ADVANCED -> EASY -->
+          <div class="stage-card late" onclick="selectStage('late')" id="card-late">
+            <h4>🌸 Advanced / Last Stage</h4>
+            <p>Significant memory support needed. Simplified, relaxing & gentle exercises.</p>
+            <span class="stage-badge">Difficulty: Easy</span>
+          </div>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('patientModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Patient</button>
+
+        <div style="display:flex; justify-content:center; gap:16px; margin-top:28px;">
+          <button type="submit" class="btn btn-primary btn-lg">
+            ▶ Begin Personalized Cognitive Workout
+          </button>
         </div>
       </form>
-    </div>
+    </section>
+
+    <!-- ==================== SCREEN 2: ACTIVE WORKOUT WORKSPACE ==================== -->
+    <section id="workoutSection">
+      
+      <!-- Top Patient Chip & Change Button -->
+      <div class="card" style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <span style="font-size:0.85rem; color:var(--text-muted);">Active Patient:</span>
+          <strong id="barPatientName" style="font-size:1.15rem; margin-left:6px;">Margaret Evans</strong>
+          <span id="barStageBadge" class="stage-badge" style="margin-left:10px; background:#fef3c7; color:#b45309;">Stage: Beginning (Hard)</span>
+        </div>
+        <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="returnToIntake()">
+          👤 Switch Patient / Stage
+        </button>
+      </div>
+
+      <!-- Live Session Stats Ribbon -->
+      <div class="stats-ribbon">
+        <div class="stat-box">
+          <strong id="statScore">0</strong>
+          <span>Total Score</span>
+        </div>
+        <div class="stat-box">
+          <strong id="statGames">0/4</strong>
+          <span>Levels Done</span>
+        </div>
+        <div class="stat-box">
+          <strong id="statMistakes">0</strong>
+          <span>Mistakes</span>
+        </div>
+        <div class="stat-box">
+          <strong id="statAttempts">0</strong>
+          <span>Attempts</span>
+        </div>
+      </div>
+
+      <!-- Camera & Voice Assist Section -->
+      <div class="card">
+        <div class="card-title">
+          <span>📱 Clinical Monitoring (Camera & Voice Recognition)</span>
+        </div>
+        <div class="media-grid">
+          <div>
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button class="btn btn-secondary" onclick="startCamera()">📷 Start Camera</button>
+              <button class="btn btn-secondary" onclick="stopCamera()">Stop Camera</button>
+            </div>
+          </div>
+          <div>
+            <div class="transcript-box" id="transcriptDisplay">
+              Voice transcription will appear here. Lady AI will also listen to your responses...
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button class="btn btn-secondary" onclick="startMic()">🎤 Start Microphone</button>
+              <button class="btn btn-secondary" onclick="stopMic()">Stop Microphone</button>
+              <button class="btn btn-secondary" onclick="ladySpeakInstructions()">🔊 Repeat Instructions</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GAME 1: MEMORY MATCH ==================== -->
+      <div id="gamePane1" class="card game-pane active">
+        <div class="card-title">
+          <span>🧩 Level 1: Memory Pair Matching</span>
+          <span id="memStatusBadge" class="status-pill connected">0 Matched</span>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.95rem;" id="memDesc">
+          Flip the cards to locate matching pairs.
+        </p>
+
+        <div class="game-arena">
+          <div class="memory-grid" id="memoryGrid"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-secondary" onclick="initMemoryGame()">🔄 Restart Cards</button>
+          <button class="btn btn-primary" onclick="showGame(2)">Next Activity: Sequence →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GAME 2: EASY SEQUENCE ==================== -->
+      <div id="gamePane2" class="card game-pane">
+        <div class="card-title">
+          <span>🔢 Level 2: Sequence Memory</span>
+          <span id="seqStatusBadge" class="status-pill connected">Observe Pattern</span>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.95rem;">
+          Memorize the numbers shown and tap them in the same order.
+        </p>
+
+        <div class="game-arena">
+          <div class="sequence-monitor" id="sequenceDisplay">Press START</div>
+          <div class="sequence-pad" id="sequenceButtonPad">
+            <!-- 1 to 5 number pads -->
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" onclick="startSequence()">▶ Start Sequence</button>
+            <button class="btn btn-secondary" onclick="clearSequence()">Clear</button>
+          </div>
+          <button class="btn btn-primary" onclick="showGame(3)">Next Activity: Find Object →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GAME 3: FIND THE OBJECT ==================== -->
+      <div id="gamePane3" class="card game-pane">
+        <div class="card-title">
+          <span>☕ Level 3: Visual Discrimination & Search</span>
+        </div>
+        <div class="target-callout" id="targetObjectCallout">
+          Locating Target...
+        </div>
+
+        <div class="game-arena">
+          <div class="object-grid" id="objectGrid"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-secondary" onclick="initObjectGame()">🔄 New Target</button>
+          <button class="btn btn-primary" onclick="showGame(4)">Next Activity: Reaction →</button>
+        </div>
+      </div>
+
+      <!-- ==================== GAME 4: REACTION SPEED ==================== -->
+      <div id="gamePane4" class="card game-pane">
+        <div class="card-title">
+          <span>⚡ Level 4: Reaction Time Challenge</span>
+          <span id="reactionBadge" class="status-pill connected">Attempts: 0/3</span>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.95rem;">
+          Wait patiently for the circle to appear, then tap it as quickly as you can!
+        </p>
+
+        <div class="game-arena">
+          <div class="reaction-zone" id="reactionZone" onclick="handlePrematureClick()">
+            <div class="reaction-circle" id="reactionCircle" onclick="handleReactionSuccess(event)">TAP NOW!</div>
+            <div id="reactionPrompt" style="font-size:1.2rem; font-weight:700; color:var(--text-muted);">Press START below</div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-primary" onclick="startReactionTrial()">▶ Start Reaction Test</button>
+          <button class="btn btn-success btn-lg" onclick="finishSession()">🏁 Complete Workout</button>
+        </div>
+      </div>
+
+      <!-- ==================== FINAL CELEBRATION SCREEN ==================== -->
+      <div id="finalScreen" class="card celebration-screen" style="display:none;">
+        <h2 style="font-size:2.2rem; color:var(--primary);">🎉 Magnificent Achievement!</h2>
+        <p style="font-size:1.1rem; color:var(--text-muted); margin-top:8px;">
+          You have completed all cognitive exercises tailored for your current stage.
+        </p>
+        <div class="big-score" id="finalScoreVal">0</div>
+        <p style="font-weight:700; color:var(--text-muted);">Total Cognitive Care Points Earned</p>
+
+        <div style="display:flex; justify-content:center; gap:16px; margin-top:28px;">
+          <button class="btn btn-primary btn-lg" onclick="returnToIntake()">🔄 New Session / New Patient</button>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="card">
+        <div class="card-title"><span>🔄 Real-Time Clinical Activity Log</span></div>
+        <div id="eventLog" style="max-height:160px; overflow-y:auto; font-family:monospace; font-size:0.85rem; color:var(--text-muted);">
+          <div>Session ready...</div>
+        </div>
+      </div>
+
+    </section>
+
   </div>
 
   <!-- ==========================================================================
-       MODAL 2: ADD REMINDER
-       ========================================================================== -->
-  <div class="modal-overlay" id="reminderModal">
-    <div class="modal-box">
-      <h2 style="margin-bottom:16px;">Schedule Training Reminder</h2>
-      <form onsubmit="handleCreateReminder(event)">
-        <div class="form-group">
-          <label>Reminder Title</label>
-          <input type="text" id="newRemTitle" class="form-control" required placeholder="e.g. Morning Memory Workout">
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Date</label>
-            <input type="date" id="newRemDate" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label>Time</label>
-            <input type="time" id="newRemTime" class="form-control" required>
-          </div>
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('reminderModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Set Reminder</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ==========================================================================
-       APPLICATION LOGIC & CORE ARCHITECTURE
+       FIREBASE CONFIGURATION & LOGIC
        ========================================================================== -->
   <script>
-    /* ==========================================================================
-       1. SYNTHESIZED SOUND (Web Audio API)
-       ========================================================================== */
-    const AudioEngine = {
-      ctx: null,
-      init() {
-        if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    /* =========================================================
+       1. FIREBASE CONFIGURATION (Direct from your project)
+       ========================================================= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBS0nV2kUo68cZIN3wrDYahscgkVnS3Tr4",
+      authDomain: "cognitivecare24bm068.firebaseapp.com",
+      databaseURL: "https://cognitivecare24bm068-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cognitivecare24bm068",
+      storageBucket: "cognitivecare24bm068.firebasestorage.app",
+      messagingSenderId: "252318365732",
+      appId: "1:252318365732:web:41cff9ca72823b410e40b1",
+      measurementId: "G-4V3VHVMB0"
+    };
+
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      db.ref(".info/connected").on("value", function(snap) {
+        const badge = document.getElementById("firebaseStatus");
+        if (snap.val() === true) {
+          badge.textContent = "Firebase: Connected";
+          badge.className = "status-pill connected";
+          logActivity("Connected to Firebase Realtime Database.");
+        } else {
+          badge.textContent = "Firebase: Offline";
+          badge.className = "status-pill offline";
         }
+      });
+    } catch(e) {
+      console.warn("Firebase Init notice:", e);
+    }
+
+    /* =========================================================
+       2. STATE & STAGE MAPPING
+       ========================================================= */
+    let selectedStage = 'early'; // 'early' (Hard), 'middle' (Medium), 'late' (Easy)
+    let patientData = {
+      name: '',
+      age: '',
+      gender: '',
+      caregiver: '',
+      stage: 'early',
+      difficulty: 'hard'
+    };
+    let patientId = '';
+    let sessionId = '';
+    let totalScore = 0;
+    let totalMistakes = 0;
+    let totalAttempts = 0;
+    let gamesCompleted = 0;
+    let currentGame = 1;
+
+    // Difficulty Configuration Table based on Dementia Stage
+    const StageConfig = {
+      early: {
+        label: "Beginning Stage",
+        difficulty: "hard",
+        memoryPairs: 6, // 12 cards total
+        sequenceLength: 4,
+        objectCount: 9,
+        reactionDelayMin: 1200,
+        reactionDelayMax: 2800,
+        reactionCircleClass: "",
+        aiGreeting: "Stage calibrated to Beginning. I have set your exercises to the Advanced challenge level to stimulate high memory and cognitive engagement."
       },
-      playTone(freq = 440, type = 'sine', duration = 0.15) {
-        try {
-          this.init();
-          if (this.ctx.state === 'suspended') this.ctx.resume();
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          const vol = parseFloat(document.getElementById('cfgAudioVol')?.value || 0.2);
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + duration);
-        } catch(e) {}
+      middle: {
+        label: "Moderate Stage",
+        difficulty: "medium",
+        memoryPairs: 4, // 8 cards total
+        sequenceLength: 3,
+        objectCount: 6,
+        reactionDelayMin: 1500,
+        reactionDelayMax: 3500,
+        reactionCircleClass: "",
+        aiGreeting: "Stage calibrated to Moderate. We will practice balanced cognitive activities with gentle pacing."
       },
-      success() {
-        this.playTone(523.25, 'triangle', 0.1);
-        setTimeout(() => this.playTone(659.25, 'triangle', 0.1), 100);
-        setTimeout(() => this.playTone(783.99, 'triangle', 0.25), 200);
-      },
-      error() {
-        this.playTone(220, 'sawtooth', 0.25);
+      late: {
+        label: "Advanced / Last Stage",
+        difficulty: "easy",
+        memoryPairs: 2, // 4 cards total (extra gentle)
+        sequenceLength: 2,
+        objectCount: 3,
+        reactionDelayMin: 1800,
+        reactionDelayMax: 3500,
+        reactionCircleClass: "large",
+        aiGreeting: "Stage calibrated to Advanced. I have prepared relaxing, easy exercises with large icons so you can have fun without any stress."
       }
     };
 
-    function testAudioSynthesizer() {
-      AudioEngine.success();
-    }
-
-    function speakText(text) {
+    /* =========================================================
+       3. LADY AI SPEECH SYNTHESIS ENGINE
+       ========================================================= */
+    function speakLady(text) {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
-      const ut = new SpeechSynthesisUtterance(text);
-      ut.rate = parseFloat(document.getElementById('cfgSpeechRate')?.value || 0.9);
-      window.speechSynthesis.speak(ut);
-    }
 
-    /* ==========================================================================
-       2. APPLICATION STATE & PERSISTENCE
-       ========================================================================== */
-    const State = {
-      patients: {},
-      activePatientId: null,
-      sessions: [],
-      reminders: [],
-      activeSession: null,
-      firebaseDb: null,
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 0.9;  // Gentle, reassuring pace
+      utterance.pitch = 1.15; // Pleasant female tone
 
-      init() {
-        this.loadLocal();
-        if (Object.keys(this.patients).length === 0) {
-          this.seedInitialData();
-        }
-        this.activePatientId = Object.keys(this.patients)[0];
-      },
+      // Select female voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const ladyVoice = voices.find(v => 
+        v.lang.startsWith("en") && (
+          v.name.toLowerCase().includes("female") ||
+          v.name.toLowerCase().includes("zira") ||
+          v.name.toLowerCase().includes("samantha") ||
+          v.name.toLowerCase().includes("victoria") ||
+          v.name.toLowerCase().includes("karen") ||
+          v.name.toLowerCase().includes("serena")
+        )
+      ) || voices.find(v => v.lang.startsWith("en"));
 
-      loadLocal() {
-        try {
-          this.patients = JSON.parse(localStorage.getItem('cc3_patients') || '{}');
-          this.sessions = JSON.parse(localStorage.getItem('cc3_sessions') || '[]');
-          this.reminders = JSON.parse(localStorage.getItem('cc3_reminders') || '[]');
-        } catch(e) {
-          this.patients = {}; this.sessions = []; this.reminders = [];
-        }
-      },
+      if (ladyVoice) utterance.voice = ladyVoice;
 
-      saveLocal() {
-        localStorage.setItem('cc3_patients', JSON.stringify(this.patients));
-        localStorage.setItem('cc3_sessions', JSON.stringify(this.sessions));
-        localStorage.setItem('cc3_reminders', JSON.stringify(this.reminders));
-      },
+      const avatar = document.getElementById("ladyAvatar");
+      const statusText = document.getElementById("ladyAiStatusText");
 
-      seedInitialData() {
-        const p1 = {
-          id: 'pt_eleanor_vance',
-          name: 'Eleanor Vance',
-          age: 76,
-          caregiver: 'Robert Vance',
-          notes: 'Displays mild short-term recall delays. Responds well to visual memory games.',
-          registeredAt: Date.now()
-        };
-        const p2 = {
-          id: 'pt_arthur_pendleton',
-          name: 'Arthur Pendleton',
-          age: 81,
-          caregiver: 'Sarah Pendleton, RN',
-          notes: 'Motor tremor on left hand. Reaction times baseline: ~550ms.',
-          registeredAt: Date.now()
-        };
-        this.patients[p1.id] = p1;
-        this.patients[p2.id] = p2;
-
-        // Seed 3 historical sessions
-        this.sessions.push({
-          id: 'ses_seed_1',
-          patientId: p1.id,
-          patientName: p1.name,
-          gameName: 'Memory Match',
-          difficulty: 'medium',
-          duration: 38,
-          score: 40,
-          accuracy: 85,
-          attempts: 6,
-          mistakes: 2,
-          timestamp: Date.now() - 86400000 * 2,
-          status: 'completed'
-        });
-        this.sessions.push({
-          id: 'ses_seed_2',
-          patientId: p1.id,
-          patientName: p1.name,
-          gameName: 'Reaction Challenge',
-          difficulty: 'medium',
-          duration: 25,
-          score: 80,
-          accuracy: 92,
-          reactionTimes: [420, 390, 440],
-          avgReaction: 416,
-          timestamp: Date.now() - 86400000,
-          status: 'completed'
-        });
-        this.saveLocal();
-      }
-    };
-
-    /* ==========================================================================
-       3. NAVIGATION & UI THEME CONTROLLER
-       ========================================================================== */
-    function navigate(viewId) {
-      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-
-      const target = document.getElementById(`view-${viewId}`);
-      if (target) target.classList.add('active');
-
-      const btn = Array.from(document.querySelectorAll('.nav-link')).find(b => b.getAttribute('onclick')?.includes(viewId));
-      if (btn) btn.classList.add('active');
-
-      const titles = {
-        dashboard: 'Dashboard Overview',
-        patients: 'Patient Management',
-        games: 'Cognitive Activities Gymnasium',
-        insights: 'AI-Assisted Progress Insights',
-        caregiver: 'Caregiver Supervision Portal',
-        history: 'Complete Session Records',
-        reports: 'Clinical Progress Reports',
-        settings: 'System & Backend Settings'
+      utterance.onstart = () => {
+        avatar.classList.add("speaking");
+        statusText.textContent = "Lady AI: Speaking...";
       };
-      document.getElementById('headerSectionTitle').textContent = titles[viewId] || 'CognitiveCare 3.0';
+      utterance.onend = () => {
+        avatar.classList.remove("speaking");
+        statusText.textContent = "Lady AI: Ready";
+      };
 
-      if (viewId === 'dashboard') updateDashboard();
-      if (viewId === 'patients') renderPatientsList();
-      if (viewId === 'insights') generateAIProgressSummary();
-      if (viewId === 'history') renderHistoryTable();
-      if (viewId === 'reports') renderReportsCharts();
-      if (viewId === 'caregiver') renderCaregiverPortal();
-      if (viewId === 'games') updateAdaptiveDifficultyBanner();
-
-      if (window.innerWidth <= 768) {
-        document.getElementById('appSidebar').classList.remove('open');
-      }
+      window.speechSynthesis.speak(utterance);
     }
 
-    function toggleSidebar() {
-      document.getElementById('appSidebar').classList.toggle('open');
+    function speakLadyGuide() {
+      speakLady("Hello, I am Lady AI, your Cognitive Care assistant. Please enter your name, age, gender, and current stage of dementia below. I will tailor each activity to match your exact needs.");
     }
 
-    let fontMultiplier = 1.0;
-    function adjustFont(val) {
-      fontMultiplier = Math.min(Math.max(fontMultiplier + val, 0.85), 1.35);
-      document.documentElement.style.setProperty('--font-scale', `${fontMultiplier}rem`);
-    }
-    function resetFont() {
-      fontMultiplier = 1.0;
-      document.documentElement.style.setProperty('--font-scale', `1rem`);
-    }
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-    }
-    function toggleHighContrast() {
-      document.body.classList.toggle('high-contrast');
+    /* =========================================================
+       4. INTAKE & STAGE SELECTION
+       ========================================================= */
+    function selectStage(stage) {
+      selectedStage = stage;
+      document.querySelectorAll('.stage-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById(`card-${stage}`).classList.add('selected');
+
+      const config = StageConfig[stage];
+      speakLady(`You selected ${config.label}. Game difficulty will be ${config.difficulty.toUpperCase()}.`);
     }
 
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    /* ==========================================================================
-       4. PATIENTS MANAGEMENT
-       ========================================================================== */
-    function renderPatientsList() {
-      const grid = document.getElementById('patientCardsGrid');
-      grid.innerHTML = '';
-      const filter = document.getElementById('patientSearchInput').value.toLowerCase();
-
-      Object.values(State.patients).forEach(p => {
-        if (filter && !p.name.toLowerCase().includes(filter) && !p.id.toLowerCase().includes(filter)) return;
-        const isCurrent = p.id === State.activePatientId;
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.border = isCurrent ? '2px solid var(--primary)' : '1px solid var(--surface-border)';
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="patient-avatar">${p.name[0]}</div>
-              <div>
-                <h3 style="font-size:1.1rem; font-weight:700;">${p.name}</h3>
-                <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">${p.id}</span>
-              </div>
-            </div>
-            ${isCurrent ? '<span class="badge-pill online">Active</span>' : ''}
-          </div>
-          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px;">Age: <strong>${p.age}</strong> | Caregiver: <strong>${p.caregiver || 'N/A'}</strong></p>
-          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">${p.notes || 'No baseline notes recorded.'}</p>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary" style="flex:1; font-size:0.85rem;" onclick="setActivePatient('${p.id}')">Select Patient</button>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function openPatientModal() { openModal('patientModal'); }
-
-    function handleCreatePatient(e) {
+    function handleStartSession(e) {
       e.preventDefault();
-      const name = document.getElementById('newPtName').value.trim();
-      const age = parseInt(document.getElementById('newPtAge').value);
-      const caregiver = document.getElementById('newPtCaregiver').value.trim();
-      const notes = document.getElementById('newPtNotes').value.trim();
+      patientData.name = document.getElementById('patientName').value.trim();
+      patientData.age = document.getElementById('patientAge').value;
+      patientData.gender = document.getElementById('patientGender').value;
+      patientData.caregiver = document.getElementById('caregiverName').value.trim();
+      patientData.stage = selectedStage;
+      patientData.difficulty = StageConfig[selectedStage].difficulty;
 
-      const id = 'pt_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 30);
-      State.patients[id] = { id, name, age, caregiver, notes, registeredAt: Date.now() };
-      State.saveLocal();
-      setActivePatient(id);
-      closeModal('patientModal');
-      e.target.reset();
-      renderPatientsList();
+      patientId = patientData.name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 35);
+      sessionId = 'ses_' + Date.now();
+
+      // Update Bar Display
+      document.getElementById('barPatientName').textContent = `${patientData.name} (${patientData.age} y/o, ${patientData.gender})`;
+      const badge = document.getElementById('barStageBadge');
+      badge.textContent = `Stage: ${StageConfig[selectedStage].label} (${patientData.difficulty.toUpperCase()})`;
+
+      // Switch Screens
+      document.getElementById('intakeSection').style.display = 'none';
+      document.getElementById('workoutSection').style.display = 'block';
+
+      // Reset Metrics
+      totalScore = 0; totalMistakes = 0; totalAttempts = 0; gamesCompleted = 0;
+      updateStats();
+
+      // Save to Firebase
+      saveFirebasePatient();
+      saveFirebaseSession();
+
+      // Lady AI Spoken Welcome
+      const msg = `Welcome ${patientData.name}. ${StageConfig[selectedStage].aiGreeting} Let's begin with Level 1, Memory Match!`;
+      speakLady(msg);
+      logActivity(`Patient intake confirmed for ${patientData.name}. Calibrated to ${patientData.difficulty.toUpperCase()} difficulty.`);
+
+      // Launch Game 1
+      showGame(1);
     }
 
-    function setActivePatient(id) {
-      if (!State.patients[id]) return;
-      State.activePatientId = id;
-      const p = State.patients[id];
-
-      // Update sidebar
-      document.getElementById('sidebarPatientName').textContent = p.name;
-      document.getElementById('sidebarPatientMeta').textContent = `Age: ${p.age} | ${p.id}`;
-      document.getElementById('sidebarAvatar').textContent = p.name[0];
-
-      // Update dashboard
-      document.getElementById('dashPatientTitle').textContent = p.name;
-      document.getElementById('dashPatientSubtitle').textContent = `Age: ${p.age} | Caregiver: ${p.caregiver || 'N/A'}`;
-      document.getElementById('dashPatientNotes').textContent = p.notes || 'No baseline clinical notes recorded.';
-      document.getElementById('dashBigAvatar').textContent = p.name[0];
-
-      updateDashboard();
-      updateAdaptiveDifficultyBanner();
+    function returnToIntake() {
+      document.getElementById('workoutSection').style.display = 'none';
+      document.getElementById('finalScreen').style.display = 'none';
+      document.getElementById('intakeSection').style.display = 'block';
+      speakLady("Returning to patient intake. You can select another patient or adjust the stage.");
     }
 
-    /* ==========================================================================
-       5. DASHBOARD CALCULATIONS & CHARTS
-       ========================================================================== */
-    let weeklyChartInstance = null;
-
-    function updateDashboard() {
-      const patientSessions = State.sessions.filter(s => s.patientId === State.activePatientId);
-      
-      document.getElementById('dashTotalPatients').textContent = Object.keys(State.patients).length;
-      document.getElementById('dashCompletedSessions').textContent = patientSessions.length;
-
-      // Accuracy
-      const avgAcc = patientSessions.length
-        ? Math.round(patientSessions.reduce((acc, s) => acc + (s.accuracy || 0), 0) / patientSessions.length)
-        : 0;
-      document.getElementById('dashAverageAccuracy').textContent = `${avgAcc}%`;
-
-      // Reaction
-      const reactionSessions = patientSessions.filter(s => s.avgReaction);
-      const avgReact = reactionSessions.length
-        ? Math.round(reactionSessions.reduce((acc, s) => acc + s.avgReaction, 0) / reactionSessions.length)
-        : null;
-      document.getElementById('dashAvgReaction').textContent = avgReact ? `${avgReact} ms` : '-- ms';
-
-      // Recent Sessions Table
-      const tbody = document.getElementById('dashRecentSessionsTbody');
-      tbody.innerHTML = '';
-      const recent = [...patientSessions].reverse().slice(0, 5);
-
-      if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No recorded sessions found for this patient.</td></tr>';
-      } else {
-        recent.forEach(s => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td><code>${s.id.substring(0, 10)}</code></td>
-            <td><strong>${s.patientName}</strong></td>
-            <td>${s.gameName}</td>
-            <td><span class="badge-pill demo">${s.difficulty}</span></td>
-            <td><strong>${s.score}</strong></td>
-            <td>${s.accuracy}%</td>
-            <td>${new Date(s.timestamp).toLocaleDateString()}</td>
-            <td><span class="badge-pill online">${s.status}</span></td>
-          `;
-          tbody.appendChild(row);
-        });
-      }
-
-      renderWeeklyChart(patientSessions);
+    function updateStats() {
+      document.getElementById('statScore').textContent = totalScore;
+      document.getElementById('statGames').textContent = `${gamesCompleted}/4`;
+      document.getElementById('statMistakes').textContent = totalMistakes;
+      document.getElementById('statAttempts').textContent = totalAttempts;
     }
 
-    function renderWeeklyChart(sessions) {
-      const ctx = document.getElementById('dashWeeklyChart').getContext('2d');
-      if (weeklyChartInstance) weeklyChartInstance.destroy();
+    function logActivity(text) {
+      const box = document.getElementById('eventLog');
+      const item = document.createElement('div');
+      item.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      box.prepend(item);
+    }
 
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const counts = [0, 0, 0, 0, 0, 0, 0];
-      sessions.forEach(s => {
-        const d = new Date(s.timestamp).getDay();
-        counts[d]++;
-      });
-
-      weeklyChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: days,
-          datasets: [{
-            label: 'Sessions Completed',
-            data: counts,
-            backgroundColor: '#0284c7',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
+    /* =========================================================
+       5. FIREBASE REALTIME DATABASE SYNC
+       ========================================================= */
+    function saveFirebasePatient() {
+      if (!db || !patientId) return;
+      db.ref("patients/" + patientId).update({
+        name: patientData.name,
+        age: patientData.age,
+        gender: patientData.gender,
+        caregiver: patientData.caregiver,
+        dementiaStage: patientData.stage,
+        difficultySetting: patientData.difficulty,
+        lastUpdated: firebase.database.ServerValue.TIMESTAMP
       });
     }
 
-    /* ==========================================================================
-       6. ADAPTIVE DIFFICULTY ENGINE
-       ========================================================================== */
-    function evaluateAdaptiveDifficulty(gameName) {
-      const relevant = State.sessions.filter(s => s.patientId === State.activePatientId && s.gameName === gameName);
-      if (relevant.length < 2) {
-        return {
-          recommended: 'medium',
-          reason: 'Initial calibration mode: Starting at baseline Medium tier.'
-        };
-      }
-      const lastTwo = relevant.slice(-2);
-      const avgAccuracy = (lastTwo[0].accuracy + lastTwo[1].accuracy) / 2;
-      const avgMistakes = (lastTwo[0].mistakes + lastTwo[1].mistakes) / 2;
+    function saveFirebaseSession() {
+      if (!db || !patientId || !sessionId) return;
+      db.ref("patients/" + patientId + "/sessions/" + sessionId).update({
+        patientName: patientData.name,
+        dementiaStage: patientData.stage,
+        difficulty: patientData.difficulty,
+        totalScore: totalScore,
+        totalMistakes: totalMistakes,
+        totalAttempts: totalAttempts,
+        gamesCompleted: gamesCompleted,
+        status: "active",
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
 
-      if (avgAccuracy >= 90 && avgMistakes <= 1) {
-        return {
-          recommended: 'hard',
-          reason: `Exceptional accuracy (${Math.round(avgAccuracy)}%) with minimal errors. Increased to Hard challenge.`
-        };
-      } else if (avgAccuracy < 65 || avgMistakes >= 4) {
-        return {
-          recommended: 'easy',
-          reason: `Repeated challenges detected (accuracy ${Math.round(avgAccuracy)}%). Adjusted to Easy to reinforce retention.`
-        };
-      } else {
-        return {
-          recommended: 'medium',
-          reason: `Consistent stable performance (${Math.round(avgAccuracy)}%). Medium tier recommended.`
-        };
+    function saveFirebaseEvent(type, data = {}) {
+      if (!db || !patientId || !sessionId) return;
+      db.ref("patients/" + patientId + "/sessions/" + sessionId + "/events").push({
+        type: type,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        ...data
+      });
+      saveFirebaseSession();
+    }
+
+    /* =========================================================
+       6. WEBCAM & VOICE RECOGNITION
+       ========================================================= */
+    let camStream = null;
+    async function startCamera() {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+        document.getElementById('cameraVideo').srcObject = camStream;
+        logActivity("Camera preview started.");
+        saveFirebaseEvent("camera_started");
+      } catch(e) {
+        alert("Camera permission denied or camera not found.");
+      }
+    }
+    function stopCamera() {
+      if (camStream) {
+        camStream.getTracks().forEach(t => t.stop());
+        document.getElementById('cameraVideo').srcObject = null;
+        logActivity("Camera stopped.");
       }
     }
 
-    function updateAdaptiveDifficultyBanner() {
-      const evalResult = evaluateAdaptiveDifficulty('Memory Match');
-      document.getElementById('adaptiveReasonText').textContent = `${evalResult.recommended.toUpperCase()} — ${evalResult.reason}`;
-      const memSelect = document.getElementById('memDifficultySelect');
-      if (memSelect) memSelect.value = evalResult.recommended;
+    let speechRec = null;
+    function startMic() {
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) return alert("Speech recognition is not supported in this browser.");
+      speechRec = new Speech();
+      speechRec.continuous = true;
+      speechRec.interimResults = true;
+      speechRec.lang = "en-US";
+
+      speechRec.onresult = (e) => {
+        let str = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) str += e.results[i][0].transcript;
+        document.getElementById('transcriptDisplay').textContent = str;
+        saveFirebaseEvent("voice_input", { transcript: str });
+      };
+      speechRec.start();
+      logActivity("Microphone speech recognition active.");
+    }
+    function stopMic() {
+      if (speechRec) speechRec.stop();
+      logActivity("Microphone stopped.");
     }
 
-    /* ==========================================================================
-       7. FOUR COGNITIVE GAMES ENGINE
-       ========================================================================== */
-    function switchGameView(num) {
+    /* =========================================================
+       7. FOUR GAMES (ADAPTING TO STAGE DIFFICULTY)
+       ========================================================= */
+    function showGame(num) {
+      currentGame = num;
       for (let i = 1; i <= 4; i++) {
-        document.getElementById(`gameModule-${i}`).style.display = (i === num) ? 'block' : 'none';
-        document.getElementById(`tabBtnGame${i}`).classList.toggle('active-game-tab', i === num);
+        document.getElementById(`gamePane${i}`).classList.remove('active');
       }
+      document.getElementById(`gamePane${num}`).classList.add('active');
+
       if (num === 1) initMemoryGame();
+      if (num === 2) initSequenceGame();
       if (num === 3) initObjectGame();
+      if (num === 4) initReactionGame();
     }
 
-    function launchTrainingSession() {
-      navigate('games');
-      switchGameView(1);
-      speakText(`Starting cognitive workout for ${State.patients[State.activePatientId].name}. Level 1: Memory Match.`);
+    function ladySpeakInstructions() {
+      if (currentGame === 1) speakLady("Level 1: Memory Match. Click on the cards to flip them and locate the matching pairs.");
+      if (currentGame === 2) speakLady("Level 2: Sequence Memory. Watch the highlighted numbers and tap them back in the same order.");
+      if (currentGame === 3) speakLady("Level 3: Find the Object. Look at the requested object at the top, and find it among the icons below.");
+      if (currentGame === 4) speakLady("Level 4: Reaction Challenge. Wait patiently for the circle to appear, then tap it as quickly as you can.");
     }
 
     /* --- GAME 1: MEMORY MATCH --- */
-    const allSymbols = ['🍌', '🍇', '🍊', '🍎', '🍓', '🍉', '🍒', '🥝'];
-    let memCards = [], memFlipped = [], memMatchedCount = 0, memTotalPairs = 4;
-    let memAttempts = 0, memMistakes = 0, memStartTime = null, memTimerInterval = null;
+    const emojiRepo = ['🍌', '🍇', '🍊', '🍎', '🍓', '🍉'];
+    let memCards = [], flippedCards = [], matchedPairsCount = 0, lockBoard = false;
 
     function initMemoryGame() {
-      const diff = document.getElementById('memDifficultySelect').value;
-      memTotalPairs = (diff === 'easy') ? 3 : (diff === 'medium' ? 4 : 6);
-      
-      const grid = document.getElementById('memoryGridArea');
-      grid.className = `memory-grid cards-${memTotalPairs * 2}`;
+      const cfg = StageConfig[selectedStage];
+      const pairsNeeded = cfg.memoryPairs; // 2 for Late, 4 for Middle, 6 for Early
+      matchedPairsCount = 0;
+      flippedCards = [];
+      lockBoard = false;
+
+      const grid = document.getElementById('memoryGrid');
+      grid.className = `memory-grid cards-${pairsNeeded * 2}`;
       grid.innerHTML = '';
 
-      const chosen = allSymbols.slice(0, memTotalPairs);
+      const chosen = emojiRepo.slice(0, pairsNeeded);
       memCards = [...chosen, ...chosen].sort(() => Math.random() - 0.5);
-      memFlipped = [];
-      memMatchedCount = 0;
-      memAttempts = 0;
-      memMistakes = 0;
 
-      document.getElementById('memPairsFound').textContent = `0/${memTotalPairs}`;
-      document.getElementById('memAttemptsCount').textContent = '0';
-      document.getElementById('memMistakesCount').textContent = '0';
-      document.getElementById('memTimerElapsed').textContent = '0s';
+      document.getElementById('memStatusBadge').textContent = `0 / ${pairsNeeded} Matched`;
 
-      clearInterval(memTimerInterval);
-      memStartTime = Date.now();
-      memTimerInterval = setInterval(() => {
-        const sec = Math.floor((Date.now() - memStartTime) / 1000);
-        document.getElementById('memTimerElapsed').textContent = `${sec}s`;
-      }, 1000);
-
-      memCards.forEach((sym, idx) => {
-        const slot = document.createElement('div');
-        slot.className = 'mem-card';
-        slot.dataset.symbol = sym;
-        slot.innerHTML = `
-          <div class="mem-card-inner">
+      memCards.forEach((sym) => {
+        const card = document.createElement('div');
+        card.className = 'mem-card';
+        card.innerHTML = `
+          <div class="mem-inner">
             <div class="mem-front">?</div>
             <div class="mem-back">${sym}</div>
           </div>
         `;
-        slot.onclick = () => handleMemoryFlip(slot, sym);
-        grid.appendChild(slot);
+        card.onclick = () => handleCardFlip(card, sym, pairsNeeded);
+        grid.appendChild(card);
       });
     }
 
-    function handleMemoryFlip(cardEl, sym) {
-      if (memFlipped.length >= 2 || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+    function handleCardFlip(card, sym, totalPairs) {
+      if (lockBoard || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+      card.classList.add('flipped');
+      flippedCards.push({ card, sym });
 
-      AudioEngine.playTone(450, 'sine', 0.08);
-      cardEl.classList.add('flipped');
-      memFlipped.push({ cardEl, sym });
+      if (flippedCards.length === 2) {
+        totalAttempts++;
+        if (flippedCards[0].sym === flippedCards[1].sym) {
+          flippedCards[0].card.classList.add('matched');
+          flippedCards[1].card.classList.add('matched');
+          matchedPairsCount++;
+          totalScore += 10;
+          document.getElementById('memStatusBadge').textContent = `${matchedPairsCount} / ${totalPairs} Matched`;
+          flippedCards = [];
 
-      if (memFlipped.length === 2) {
-        memAttempts++;
-        document.getElementById('memAttemptsCount').textContent = memAttempts;
-
-        if (memFlipped[0].sym === memFlipped[1].sym) {
-          AudioEngine.success();
-          memFlipped[0].cardEl.classList.add('matched');
-          memFlipped[1].cardEl.classList.add('matched');
-          memMatchedCount++;
-          document.getElementById('memPairsFound').textContent = `${memMatchedCount}/${memTotalPairs}`;
-          memFlipped = [];
-
-          if (memMatchedCount === memTotalPairs) {
-            clearInterval(memTimerInterval);
-            const duration = Math.floor((Date.now() - memStartTime) / 1000);
-            const accuracy = Math.round((memTotalPairs / memAttempts) * 100);
-            saveSessionRecord('Memory Match', document.getElementById('memDifficultySelect').value, duration, memTotalPairs * 10, accuracy, memAttempts, memMistakes);
-            speakText('Superb! You completed Memory Match.');
+          if (matchedPairsCount === totalPairs) {
+            gamesCompleted = Math.max(gamesCompleted, 1);
+            speakLady("Excellent! You found all the matching pairs!");
+            logActivity("Memory Match completed.");
+            saveFirebaseEvent("game_completed", { game: "Memory Match", score: totalScore });
           }
         } else {
-          AudioEngine.error();
-          memMistakes++;
-          document.getElementById('memMistakesCount').textContent = memMistakes;
+          totalMistakes++;
+          lockBoard = true;
           setTimeout(() => {
-            memFlipped[0].cardEl.classList.remove('flipped');
-            memFlipped[1].cardEl.classList.remove('flipped');
-            memFlipped = [];
+            flippedCards[0].card.classList.remove('flipped');
+            flippedCards[1].card.classList.remove('flipped');
+            flippedCards = [];
+            lockBoard = false;
           }, 850);
         }
+        updateStats();
+        saveFirebaseSession();
       }
     }
 
-    /* --- GAME 2: SEQUENCE SIMON --- */
-    let simonSequence = [], simonUserInput = [], simonActive = false, simonLength = 4;
+    /* --- GAME 2: SEQUENCE MEMORY --- */
+    let sequence = [], userSeq = [], seqActive = false;
 
-    function startSimonTrial() {
-      const diff = document.getElementById('seqDifficultySelect').value;
-      simonLength = (diff === 'easy') ? 3 : (diff === 'medium' ? 4 : 5);
-      simonSequence = [];
-      simonUserInput = [];
+    function initSequenceGame() {
+      const pad = document.getElementById('sequenceButtonPad');
+      pad.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'seq-btn';
+        btn.id = `numPad-${i}`;
+        btn.textContent = i;
+        btn.onclick = () => handleSeqInput(i);
+        pad.appendChild(btn);
+      }
+      document.getElementById('sequenceDisplay').textContent = "Press START";
+    }
 
-      for (let i = 0; i < simonLength; i++) {
-        simonSequence.push(Math.floor(Math.random() * 5) + 1);
+    function startSequence() {
+      const cfg = StageConfig[selectedStage];
+      const length = cfg.sequenceLength; // 2 for Late, 3 for Middle, 4 for Early
+      sequence = [];
+      userSeq = [];
+      seqActive = false;
+
+      for (let i = 0; i < length; i++) {
+        sequence.push(Math.floor(Math.random() * 5) + 1);
       }
 
-      document.getElementById('seqStatusDisplay').textContent = 'OBSERVE PATTERN...';
-      simonActive = false;
+      document.getElementById('sequenceDisplay').textContent = "WATCH...";
+      speakLady("Watch the highlighted numbers carefully.");
 
       let idx = 0;
-      const interval = setInterval(() => {
-        if (idx < simonSequence.length) {
-          flashSimonPad(simonSequence[idx]);
+      const timer = setInterval(() => {
+        if (idx < sequence.length) {
+          flashSeqPad(sequence[idx]);
           idx++;
         } else {
-          clearInterval(interval);
-          document.getElementById('seqStatusDisplay').textContent = 'YOUR TURN';
-          simonActive = true;
+          clearInterval(timer);
+          document.getElementById('sequenceDisplay').textContent = "YOUR TURN";
+          seqActive = true;
         }
-      }, 700);
+      }, selectedStage === 'late' ? 950 : 700);
     }
 
-    function flashSimonPad(num) {
-      const pad = document.getElementById(`simon-${num}`);
-      pad.classList.add('active-lit');
-      AudioEngine.playTone(320 + num * 75, 'triangle', 0.2);
-      setTimeout(() => pad.classList.remove('active-lit'), 380);
+    function flashSeqPad(num) {
+      const btn = document.getElementById(`numPad-${num}`);
+      if (!btn) return;
+      btn.classList.add('lit');
+      setTimeout(() => btn.classList.remove('lit'), 400);
     }
 
-    function handleSimonTap(num) {
-      if (!simonActive) return;
-      flashSimonPad(num);
-      simonUserInput.push(num);
+    function handleSeqInput(num) {
+      if (!seqActive) return;
+      flashSeqPad(num);
+      userSeq.push(num);
+      document.getElementById('sequenceDisplay').textContent = userSeq.join(' ');
 
-      if (simonUserInput.length === simonSequence.length) {
-        simonActive = false;
-        const correct = simonUserInput.join('') === simonSequence.join('');
-        if (correct) {
-          AudioEngine.success();
-          document.getElementById('seqStatusDisplay').textContent = 'CORRECT! ✓';
-          document.getElementById('seqScoreVal').textContent = '20';
-          saveSessionRecord('Sequence Memory', document.getElementById('seqDifficultySelect').value, 15, 20, 100, 1, 0);
-          speakText('Correct sequence!');
+      if (userSeq.length === sequence.length) {
+        seqActive = false;
+        totalAttempts++;
+        if (userSeq.join('') === sequence.join('')) {
+          totalScore += 20;
+          gamesCompleted = Math.max(gamesCompleted, 2);
+          document.getElementById('seqStatusBadge').textContent = "Correct! ✓";
+          speakLady("Wonderful! Your sequence is completely correct.");
+          logActivity("Sequence Memory completed.");
+          saveFirebaseEvent("game_completed", { game: "Sequence Memory", score: 20 });
         } else {
-          AudioEngine.error();
-          document.getElementById('seqStatusDisplay').textContent = 'MISMATCH ✕';
-          saveSessionRecord('Sequence Memory', document.getElementById('seqDifficultySelect').value, 15, 0, 0, 1, 1);
-          speakText('Sequence did not match.');
+          totalMistakes++;
+          document.getElementById('seqStatusBadge').textContent = "Try again ✕";
+          speakLady("That sequence was not quite right. Don't worry, you can try again.");
         }
+        updateStats();
+        saveFirebaseSession();
       }
     }
 
-    function resetSimon() {
-      simonUserInput = [];
-      document.getElementById('seqStatusDisplay').textContent = 'Ready';
+    function clearSequence() {
+      userSeq = [];
+      document.getElementById('sequenceDisplay').textContent = "Press START";
     }
 
     /* --- GAME 3: FIND THE OBJECT --- */
-    const visualItems = [
-      { name: 'Coffee Cup', icon: '☕' },
-      { name: 'Phone', icon: '📱' },
-      { name: 'House Key', icon: '🔑' },
-      { name: 'Eye Glasses', icon: '👓' },
-      { name: 'Clock', icon: '⏰' },
-      { name: 'Book', icon: '📖' },
-      { name: 'Umbrella', icon: '☂️' },
-      { name: 'Bicycle', icon: '🚲' },
-      { name: 'Wrist Watch', icon: '⌚' },
-      { name: 'Camera', icon: '📷' },
-      { name: 'Backpack', icon: '🎒' },
-      { name: 'Lightbulb', icon: '💡' }
+    const objPool = [
+      { name: "Coffee Cup", icon: "☕" },
+      { name: "Phone", icon: "📱" },
+      { name: "Key", icon: "🔑" },
+      { name: "Glasses", icon: "👓" },
+      { name: "Clock", icon: "⏰" },
+      { name: "Book", icon: "📖" },
+      { name: "Umbrella", icon: "☂️" },
+      { name: "Bicycle", icon: "🚲" },
+      { name: "Camera", icon: "📷" }
     ];
-    let objTarget = null, objCorrect = 0, objStartTime = null;
+    let currentTargetObj = null;
 
     function initObjectGame() {
-      const diff = document.getElementById('objDifficultySelect').value;
-      const count = (diff === 'easy') ? 6 : (diff === 'medium' ? 9 : 12);
-      const grid = document.getElementById('objectSearchGrid');
-      grid.className = `object-search-grid items-${count}`;
+      const cfg = StageConfig[selectedStage];
+      const count = cfg.objectCount; // 3 for Late, 6 for Middle, 9 for Early
+      const pool = objPool.slice(0, count);
+
+      currentTargetObj = pool[Math.floor(Math.random() * pool.length)];
+      document.getElementById('targetObjectCallout').textContent = `Find: ${currentTargetObj.icon} ${currentTargetObj.name}`;
+      speakLady(`Please look for the ${currentTargetObj.name}.`);
+
+      const grid = document.getElementById('objectGrid');
+      grid.className = `object-grid items-${count}`;
       grid.innerHTML = '';
 
-      const subset = visualItems.slice(0, count);
-      objTarget = subset[Math.floor(Math.random() * subset.length)];
-      document.getElementById('objectTargetPrompt').textContent = `Target: Find the ${objTarget.icon} ${objTarget.name}`;
-
-      objStartTime = performance.now();
-
-      [...subset].sort(() => Math.random() - 0.5).forEach(item => {
+      [...pool].sort(() => Math.random() - 0.5).forEach(item => {
         const btn = document.createElement('button');
-        btn.className = 'obj-item-btn';
+        btn.className = 'obj-btn';
         btn.innerHTML = `${item.icon}<span>${item.name}</span>`;
         btn.onclick = () => {
-          if (item.name === objTarget.name) {
-            AudioEngine.success();
-            objCorrect++;
-            document.getElementById('objCorrectCount').textContent = objCorrect;
-            const latency = Math.round(performance.now() - objStartTime);
-            saveSessionRecord('Find the Object', diff, Math.round(latency / 1000), 20, 100, 1, 0);
-            speakText('Target acquired!');
-            setTimeout(initObjectGame, 1000);
+          totalAttempts++;
+          if (item.name === currentTargetObj.name) {
+            totalScore += 20;
+            gamesCompleted = Math.max(gamesCompleted, 3);
+            speakLady("Spot on! You found the object.");
+            logActivity(`Found object: ${item.name}`);
+            saveFirebaseEvent("game_completed", { game: "Find Object", score: 20 });
+            setTimeout(initObjectGame, 1200);
           } else {
-            AudioEngine.error();
-            speakText('Try again.');
+            totalMistakes++;
+            speakLady("That is not it. Look closely and try again.");
           }
+          updateStats();
+          saveFirebaseSession();
         };
         grid.appendChild(btn);
       });
     }
 
-    /* --- GAME 4: REACTION SPEED --- */
-    let reactTrial = 0, reactTimer = null, reactStimulusStart = null, reactTimes = [], reactWaiting = false;
+    /* --- GAME 4: REACTION CHALLENGE --- */
+    let reactTimer = null, reactStart = null, reactWaiting = false, reactAttemptsCount = 0;
+
+    function initReactionGame() {
+      reactAttemptsCount = 0;
+      document.getElementById('reactionBadge').textContent = `Attempts: 0/3`;
+    }
 
     function startReactionTrial() {
-      const circle = document.getElementById('reactionTargetCircle');
-      const text = document.getElementById('reactionInstructionText');
+      const cfg = StageConfig[selectedStage];
+      const circle = document.getElementById('reactionCircle');
+      circle.className = `reaction-circle ${cfg.reactionCircleClass}`;
       circle.style.display = 'none';
-      text.textContent = 'Wait for signal... (Avoid clicking early)';
-      reactWaiting = true;
-      reactStimulusStart = null;
 
-      const delay = 1600 + Math.random() * 2600;
+      document.getElementById('reactionPrompt').textContent = "Wait for the blue circle...";
+      reactWaiting = true;
+      reactStart = null;
+
+      const delay = cfg.reactionDelayMin + Math.random() * (cfg.reactionDelayMax - cfg.reactionDelayMin);
       reactTimer = setTimeout(() => {
         circle.style.display = 'flex';
-        text.textContent = '';
-        reactStimulusStart = performance.now();
-        AudioEngine.playTone(600, 'sine', 0.12);
+        reactStart = performance.now();
+        document.getElementById('reactionPrompt').textContent = "TAP NOW!";
       }, delay);
     }
 
-    function handleReactionPrematureClick() {
-      if (reactWaiting && !reactStimulusStart) {
+    function handlePrematureClick() {
+      if (reactWaiting && !reactStart) {
         clearTimeout(reactTimer);
         reactWaiting = false;
-        AudioEngine.error();
-        document.getElementById('reactionInstructionText').textContent = '⚠️ False Start! You clicked before the signal.';
-        speakText('Too early. Wait for the signal.');
+        totalMistakes++;
+        document.getElementById('reactionPrompt').textContent = "⚠️ Too early! Wait for the circle to appear.";
+        speakLady("A little too early. Wait until the circle shows up.");
+        updateStats();
       }
     }
 
     function handleReactionSuccess(e) {
       e.stopPropagation();
-      if (!reactStimulusStart) return;
-      const ms = Math.round(performance.now() - reactStimulusStart);
+      if (!reactStart) return;
+      const ms = Math.round(performance.now() - reactStart);
       reactWaiting = false;
-      document.getElementById('reactionTargetCircle').style.display = 'none';
-      AudioEngine.success();
+      document.getElementById('reactionCircle').style.display = 'none';
 
-      reactTimes.push(ms);
-      reactTrial++;
-      document.getElementById('reactionTrialBadge').textContent = `Trial ${reactTrial} / 3`;
-      const best = Math.min(...reactTimes);
-      document.getElementById('reactionBestVal').textContent = `${best} ms`;
-      document.getElementById('reactionInstructionText').textContent = `Reaction latency: ${ms} ms`;
+      reactAttemptsCount++;
+      totalAttempts++;
+      let pts = ms < 450 ? 30 : (ms < 750 ? 20 : 10);
+      totalScore += pts;
 
-      if (reactTrial >= 3) {
-        const avg = Math.round(reactTimes.reduce((a, b) => a + b, 0) / reactTimes.length);
-        saveSessionRecord('Reaction Challenge', 'standard', 18, 50, 100, 3, 0, { reactionTimes: reactTimes, avgReaction: avg });
-        speakText(`Completed Reaction Challenge. Average latency ${avg} milliseconds.`);
+      document.getElementById('reactionPrompt').textContent = `Reaction: ${ms} ms (+${pts} pts)`;
+      document.getElementById('reactionBadge').textContent = `Attempts: ${reactAttemptsCount}/3`;
+
+      speakLady(`Nice tap! Reaction speed was ${ms} milliseconds.`);
+      logActivity(`Reaction attempt: ${ms} ms`);
+
+      if (reactAttemptsCount >= 3) {
+        gamesCompleted = 4;
+        saveFirebaseEvent("game_completed", { game: "Reaction Challenge", score: totalScore });
       }
+      updateStats();
+      saveFirebaseSession();
     }
 
-    function concludeWorkoutSession() {
-      speakText('Congratulations. Today\'s cognitive training session has concluded.');
-      navigate('dashboard');
-    }
-
-    function saveSessionRecord(gameName, diff, duration, score, acc, attempts, mistakes, extra = {}) {
-      const session = {
-        id: 'ses_' + Date.now(),
-        patientId: State.activePatientId,
-        patientName: State.patients[State.activePatientId].name,
-        gameName: gameName,
-        difficulty: diff,
-        duration: duration,
-        score: score,
-        accuracy: acc,
-        attempts: attempts,
-        mistakes: mistakes,
-        timestamp: Date.now(),
-        status: 'completed',
-        ...extra
-      };
-      State.sessions.push(session);
-      State.saveLocal();
-      updateDashboard();
-    }
-
-    /* ==========================================================================
-       8. AI PROGRESS INSIGHTS ENGINE
-       ========================================================================== */
-    let aiRadarInstance = null;
-
-    function generateAIProgressSummary() {
-      const sessions = State.sessions.filter(s => s.patientId === State.activePatientId);
-      const narrativeBox = document.getElementById('aiNarrativeContent');
-      const goalsList = document.getElementById('aiSuggestedGoalsList');
-
-      if (sessions.length < 2) {
-        narrativeBox.innerHTML = `
-          <strong>Insufficient Baseline Data:</strong><br>
-          Only ${sessions.length} session is recorded for this patient. Please complete at least 2 full sessions to generate statistical trajectory insights.
-        `;
-        return;
+    function finishSession() {
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`gamePane${i}`).classList.remove('active');
       }
-
-      // Trajectory calculation
-      const recent = sessions.slice(-5);
-      const accTrajectory = recent.map(s => s.accuracy);
-      const firstAcc = accTrajectory[0];
-      const lastAcc = accTrajectory[accTrajectory.length - 1];
-      const deltaAcc = lastAcc - firstAcc;
-
-      // Reaction trend
-      const reactSessions = sessions.filter(s => s.avgReaction);
-      let reactStatement = 'Motor reaction metrics pending baseline.';
-      if (reactSessions.length >= 2) {
-        const lastR = reactSessions[reactSessions.length - 1].avgReaction;
-        const prevR = reactSessions[0].avgReaction;
-        const diffR = prevR - lastR;
-        reactStatement = diffR > 0
-          ? `Psychomotor reaction improved by ${diffR} ms (current average: ${lastR} ms).`
-          : `Psychomotor latency is stable with a slight variance of ${Math.abs(diffR)} ms.`;
-      }
-
-      narrativeBox.innerHTML = `
-        <p><strong>Patient:</strong> ${State.patients[State.activePatientId].name} | <strong>Sessions Analyzed:</strong> ${sessions.length}</p>
-        <p style="margin-top:8px;"><strong>Accuracy Trajectory:</strong> Over the last ${recent.length} sessions, overall task accuracy has ${deltaAcc >= 0 ? 'gained +' + deltaAcc + '%' : 'decreased by ' + deltaAcc + '%'} (Latest: ${lastAcc}%).</p>
-        <p style="margin-top:8px;"><strong>Reaction & Motor Speed:</strong> ${reactStatement}</p>
-        <p style="margin-top:8px;"><strong>Working Memory Stability:</strong> Spatial card retrieval indicates steady retention with low error rate.</p>
-      `;
-
-      goalsList.innerHTML = `
-        <li>Schedule 3 targeted exercises focusing on <strong>Sequential Attention</strong>.</li>
-        <li>Promote high-contrast visual tasks to maintain visual search stamina.</li>
-        <li>Target reaction latencies below ${reactSessions.length ? reactSessions[reactSessions.length-1].avgReaction : 450} ms.</li>
-      `;
-
-      renderAIRadarChart(sessions);
+      document.getElementById('finalScreen').style.display = 'block';
+      document.getElementById('finalScoreVal').textContent = totalScore;
+      speakLady(`Congratulations ${patientData.name}! You finished your cognitive session with a score of ${totalScore}. You did an outstanding job today!`);
+      saveFirebaseSession();
+      saveFirebaseEvent("session_completed", { finalScore: totalScore });
     }
 
-    function renderAIRadarChart(sessions) {
-      const ctx = document.getElementById('aiDomainRadarChart').getContext('2d');
-      if (aiRadarInstance) aiRadarInstance.destroy();
-
-      aiRadarInstance = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: ['Spatial Memory', 'Sequence Memory', 'Visual Discrimination', 'Motor Reaction'],
-          datasets: [{
-            label: 'Cognitive Balance (%)',
-            data: [85, 78, 92, 88],
-            backgroundColor: 'rgba(2, 132, 199, 0.25)',
-            borderColor: '#0284c7',
-            pointBackgroundColor: '#0284c7'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: { r: { min: 0, max: 100 } }
-        }
-      });
-    }
-
-    /* ==========================================================================
-       9. CAREGIVER REMINDERS & PORTAL
-       ========================================================================== */
-    function renderCaregiverPortal() {
-      const container = document.getElementById('remindersListArea');
-      container.innerHTML = '';
-
-      if (State.reminders.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">No scheduled practice reminders.</p>';
-        return;
-      }
-
-      State.reminders.forEach((r, idx) => {
-        const div = document.createElement('div');
-        div.style.cssText = 'background:var(--surface-subtle); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--surface-border); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;';
-        div.innerHTML = `
-          <div>
-            <strong>${r.title}</strong>
-            <div style="font-size:0.8rem; color:var(--text-muted);">${r.date} at ${r.time}</div>
-          </div>
-          <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="deleteReminder(${idx})">Dismiss</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function openReminderModal() { openModal('reminderModal'); }
-
-    function handleCreateReminder(e) {
-      e.preventDefault();
-      const title = document.getElementById('newRemTitle').value.trim();
-      const date = document.getElementById('newRemDate').value;
-      const time = document.getElementById('newRemTime').value;
-
-      State.reminders.push({ title, date, time });
-      State.saveLocal();
-      closeModal('reminderModal');
-      e.target.reset();
-      renderCaregiverPortal();
-
-      if ('Notification' in window && Notification.permission !== 'granted') {
-        Notification.requestPermission();
-      }
-    }
-
-    function deleteReminder(idx) {
-      State.reminders.splice(idx, 1);
-      State.saveLocal();
-      renderCaregiverPortal();
-    }
-
-    function handleSaveCaregiverSettings(e) {
-      e.preventDefault();
-      alert('Caregiver clinical supervision settings updated.');
-    }
-
-    /* ==========================================================================
-       10. SESSION HISTORY & CSV EXPORT
-       ========================================================================== */
-    function renderHistoryTable() {
-      const tbody = document.getElementById('historyTableTbody');
-      tbody.innerHTML = '';
-
-      const pFilter = document.getElementById('historyFilterPatient');
-      pFilter.innerHTML = '<option value="all">All Patients</option>';
-      Object.values(State.patients).forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        pFilter.appendChild(opt);
-      });
-
-      State.sessions.forEach(s => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><code>${s.id.substring(0, 10)}</code></td>
-          <td><strong>${s.patientName}</strong></td>
-          <td>${s.gameName}</td>
-          <td><span class="badge-pill demo">${s.difficulty}</span></td>
-          <td>${s.duration}s</td>
-          <td>${s.score}</td>
-          <td>${s.accuracy}%</td>
-          <td>${new Date(s.timestamp).toLocaleString()}</td>
-          <td><span class="badge-pill online">${s.status}</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function exportSessionsCSV() {
-      if (State.sessions.length === 0) return alert('No sessions to export.');
-      let csv = 'SessionID,PatientID,PatientName,Activity,Difficulty,Score,Accuracy,DurationSeconds,Date\n';
-      State.sessions.forEach(s => {
-        csv += `"${s.id}","${s.patientId}","${s.patientName}","${s.gameName}","${s.difficulty}",${s.score},${s.accuracy},${s.duration},"${new Date(s.timestamp).toISOString()}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `CognitiveCare_Sessions_${Date.now()}.csv`;
-      a.click();
-    }
-
-    function printReport() {
-      window.print();
-    }
-
-    /* ==========================================================================
-       11. LONGITUDINAL REPORTS CHARTS
-       ========================================================================== */
-    let repAccChartInstance = null, repReactChartInstance = null;
-
-    function renderReportsCharts() {
-      const ctx1 = document.getElementById('repAccuracyChart').getContext('2d');
-      if (repAccChartInstance) repAccChartInstance.destroy();
-      repAccChartInstance = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: ['Memory Match', 'Sequence Memory', 'Find Object', 'Reaction Test'],
-          datasets: [{
-            label: 'Average Task Accuracy (%)',
-            data: [88, 75, 94, 98],
-            backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6'],
-            borderRadius: 6
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      const ctx2 = document.getElementById('repReactionTrendChart').getContext('2d');
-      if (repReactChartInstance) repReactChartInstance.destroy();
-      repReactChartInstance = new Chart(ctx2, {
-        type: 'line',
-        data: {
-          labels: ['Session 1', 'Session 2', 'Session 3', 'Session 4'],
-          datasets: [{
-            label: 'Reaction Latency (ms)',
-            data: [460, 430, 410, 395],
-            borderColor: '#10b981',
-            tension: 0.3,
-            fill: false
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-    }
-
-    /* ==========================================================================
-       12. FIREBASE INTEGRATION SETUP
-       ========================================================================== */
-    function saveFirebaseConfig() {
-      const apiKey = document.getElementById('cfgApiKey').value.trim();
-      const dbUrl = document.getElementById('cfgDbUrl').value.trim();
-      const projectId = document.getElementById('cfgProjectId').value.trim();
-
-      if (!apiKey || !dbUrl) {
-        alert('Please provide at least the Firebase API Key and Database URL.');
-        return;
-      }
-
-      try {
-        firebase.initializeApp({
-          apiKey: apiKey,
-          databaseURL: dbUrl,
-          projectId: projectId
-        });
-        State.firebaseDb = firebase.database();
-        document.getElementById('firebaseStatusBadge').textContent = '● Firebase Connected';
-        document.getElementById('firebaseStatusBadge').className = 'badge-pill online';
-        alert('Firebase configuration verified successfully!');
-      } catch(e) {
-        alert('Error connecting to Firebase: ' + e.message);
-      }
-    }
-
-    /* ==========================================================================
-       13. SYSTEM INITIALIZATION
-       ========================================================================== */
+    // Initialize Lady AI voice guide on load
     window.addEventListener('DOMContentLoaded', () => {
-      State.init();
-      setActivePatient(State.activePatientId);
-      navigate('dashboard');
+      setTimeout(speakLadyGuide, 700);
     });
   </script>
 </body>
